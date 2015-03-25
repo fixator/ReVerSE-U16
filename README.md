@@ -20,11 +20,11 @@ Development Kit
 - PCB Size 70 х 56 mm
 
 #### Вид платы:
-![image](u16_board_rev_a/manuals/u16a_brd_top.png)
-![image](u16_board_rev_a/manuals/u16a_brd_bot.png)
-![image](u16_board_rev_a/images/u16a_top02.jpg)
-![image](u16_board_rev_a/images/u16a_bot02.jpg)
+![image](u16_board/u16_board_rev_a/manuals/u16a_brd_top.png)
+![image](u16_board/u16_board_rev_a/manuals/u16a_brd_bot.png)
+![image](u16_board/u16_board_rev_a/images/u16a_top02.jpg)
+![image](u16_board/u16_board_rev_a/images/u16a_bot02.jpg)
 
 #### Вид платы в корпусе:
-![image](u16_board_rev_a/images/u16_box_open.jpg)
-![image](u16_board_rev_a/images/u16_box.jpg)
+![image](u16_board/u16_board_rev_a/images/u16_box_open.jpg)
+![image](u16_board/u16_board_rev_a/images/u16_box.jpg)
