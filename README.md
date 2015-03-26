@@ -19,6 +19,9 @@ Development Kit
 - Power +5В 1A
 - PCB Size 70 х 56 mm
 
+У меня на плате установлен Cyclone IV EP4CE22E22C7N, другого тогда из максимальных просто не нашлось.
+Тут есть компромисс, нет необходимости устанавливать больше, чем это нужно для ваших конфигураций.
+
 #### Вид платы:
 ![image](u16_board/u16_board_rev_a/manuals/u16a_brd_top.png)
 ![image](u16_board/u16_board_rev_a/manuals/u16a_brd_bot.png)
