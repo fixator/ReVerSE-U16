@@ -1,4 +1,4 @@
-# Quad Speccy v2.4
+# Quad Speccy
 
 ![image](readme/20150302_095132.jpg)
 
