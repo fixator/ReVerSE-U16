@@ -1,8 +1,8 @@
 # Плата ReVerSE-U16 Rev.B
 Исправлена разводка, SPI Flash M25P16 замененил на W25Q64FV(64Mbit) для конфигураций использующих загрузку ROM из SPI-FLASH.
 
-![image](u16b_brd_top.png)
-![image](u16b_brd_bot.png)
+![image](manuals/u16b_brd_top.png)
+![image](manuals/u16b_brd_bot.png)
 
 #### Оставил взаимозаменяемость:
 - FPGA Cyclone III EP3C5/10/16/25, Cyclone IV EP4CE6/10/15/22 в корпусах EQFP 144-Pin (не забывайте припаивать корпус снизу);
