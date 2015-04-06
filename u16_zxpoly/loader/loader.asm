@@ -2,14 +2,8 @@
 ; -----------------------------------------------------------------[06.04.2015]
 ; ReVerSE-U16 Loader Version 1.0 By MVV
 ; -----------------------------------------------------------------------------
-; V0.1	 05.11.2011	первая версия
-; V0.5	 09.11.2011	добавил SPI загрузчик и GS, VS1053
-; V0.6	 14.01.2012	добавил расширение памяти KAY
-; V0.7	 19.09.2012	по умолчанию режим память 4MB Profi, 96K ROM грузится из M25P40, wav 48kHz, FAT16 loader отключен
-; V0.8	 19.03.2014	размер загрузчика 1К
-; V0.9	 24.07.2014	одаптирован для U16 EP3C10
-; V0.9.1 25.07.2014	одаптирован для U16 EP4CE22/EP3C25
-; V0.9.2 09.08.2014	поддержка ENC424J600
+; 06.04.2015	первая версия
+
 
 system_port	equ #0001	; bit2 = (0:Loader ON, 1:Loader OFF); bit1 = (NC); bit0 = (0:M25P16, 1:ENC424J600)
 mask_port	equ #0000	; Маска порта EXT_MEM_PORT по AND
@@ -445,7 +439,7 @@ anykey
 str1	
 ;          "                                "
 	db 23,0,0,17,#47,"ReVerSE-U16 DevBoard",17,7,13,13
-	db "FPGA SoftCore - ZX-Poly v2.10"
+	db "FPGA SoftCore - ZX-Poly v2.10",13
 	db "(build 20150406) By MVV",13,13
 	db "Copying data from FLASH...",0
 str3
@@ -457,10 +451,9 @@ str0
 	db 13,13,"CPU0 ",17,4,"3.5 MHz",17,7,", Memory ",17,4,"512 KB",17,7
 	db 13,13,"F1..F4: Window Select",13
 	db "    F5: NMI Button",13
-	db "    F6: DivMMC 512KB/ZController"
-	db "    F7: SounDrive On/Off",13
-	db "   F12: Reset",13
-	db "PrtScr: Hard Reset",13
+	db "    F6: DivMMC 512KB On/Off",13
+	db "   F12: Local Reset",13
+	db "PrtScr: System Reset",13
 	db " Pause: Hard Reset All",13
 	db "   Win: Full Window"
 	db 23,0,22,"Press ENTER to continue",0

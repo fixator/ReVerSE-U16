@@ -9,7 +9,7 @@
 
 -- http://zx-pk.ru/showthread.php?t=24856
 
--- Copyright (c) 2015 MVV, Raydac
+-- Copyright © 2015 MVV, Raydac
 --
 -- All rights reserved
 --
@@ -148,20 +148,6 @@ signal zx0_divmmc_cs	: std_logic;
 signal zx0_divmmc_sclk	: std_logic;
 signal zx0_divmmc_mosi	: std_logic;
 signal zx0_divmmc_sel	: std_logic;
-signal zx0_ssg0_a	: std_logic_vector(7 downto 0);
-signal zx0_ssg0_b	: std_logic_vector(7 downto 0);
-signal zx0_ssg0_c	: std_logic_vector(7 downto 0);
-signal zx0_ssg1_a	: std_logic_vector(7 downto 0);
-signal zx0_ssg1_b	: std_logic_vector(7 downto 0);
-signal zx0_ssg1_c	: std_logic_vector(7 downto 0);
-signal zx0_covox_a	: std_logic_vector(7 downto 0);
-signal zx0_covox_b	: std_logic_vector(7 downto 0);
-signal zx0_covox_c	: std_logic_vector(7 downto 0);
-signal zx0_covox_d	: std_logic_vector(7 downto 0);
-signal zx0_ssg_left	: std_logic_vector(9 downto 0);
-signal zx0_ssg_right	: std_logic_vector(9 downto 0);
-signal zx0_covox_left	: std_logic_vector(8 downto 0);
-signal zx0_covox_right	: std_logic_vector(8 downto 0);
 -- zx 1
 signal zx1_sel		: std_logic;
 signal zx1_cpu_do	: std_logic_vector(7 downto 0);
@@ -186,20 +172,6 @@ signal zx1_divmmc_cs	: std_logic;
 signal zx1_divmmc_sclk	: std_logic;
 signal zx1_divmmc_mosi	: std_logic;
 signal zx1_divmmc_sel	: std_logic;
-signal zx1_ssg0_a	: std_logic_vector(7 downto 0);
-signal zx1_ssg0_b	: std_logic_vector(7 downto 0);
-signal zx1_ssg0_c	: std_logic_vector(7 downto 0);
-signal zx1_ssg1_a	: std_logic_vector(7 downto 0);
-signal zx1_ssg1_b	: std_logic_vector(7 downto 0);
-signal zx1_ssg1_c	: std_logic_vector(7 downto 0);
-signal zx1_covox_a	: std_logic_vector(7 downto 0);
-signal zx1_covox_b	: std_logic_vector(7 downto 0);
-signal zx1_covox_c	: std_logic_vector(7 downto 0);
-signal zx1_covox_d	: std_logic_vector(7 downto 0);
-signal zx1_ssg_left	: std_logic_vector(9 downto 0);
-signal zx1_ssg_right	: std_logic_vector(9 downto 0);
-signal zx1_covox_left	: std_logic_vector(8 downto 0);
-signal zx1_covox_right	: std_logic_vector(8 downto 0);
 -- zx 2
 signal zx2_sel		: std_logic;
 signal zx2_cpu_do	: std_logic_vector(7 downto 0);
@@ -216,28 +188,12 @@ signal zx2_video_attr	: std_logic_vector(7 downto 0);
 signal zx2_video_border	: std_logic;
 signal zx2_port_xxfe	: std_logic_vector(7 downto 0);
 signal zx2_port_0001	: std_logic_vector(7 downto 0);
-signal zx2_zc_rd	: std_logic;
-signal zx2_zc_wr	: std_logic;
 signal zx2_spi_wr	: std_logic;
 signal zx2_i2c_wr	: std_logic;
 signal zx2_divmmc_cs	: std_logic;
 signal zx2_divmmc_sclk	: std_logic;
 signal zx2_divmmc_mosi	: std_logic;
 signal zx2_divmmc_sel	: std_logic;
-signal zx2_ssg0_a	: std_logic_vector(7 downto 0);
-signal zx2_ssg0_b	: std_logic_vector(7 downto 0);
-signal zx2_ssg0_c	: std_logic_vector(7 downto 0);
-signal zx2_ssg1_a	: std_logic_vector(7 downto 0);
-signal zx2_ssg1_b	: std_logic_vector(7 downto 0);
-signal zx2_ssg1_c	: std_logic_vector(7 downto 0);
-signal zx2_covox_a	: std_logic_vector(7 downto 0);
-signal zx2_covox_b	: std_logic_vector(7 downto 0);
-signal zx2_covox_c	: std_logic_vector(7 downto 0);
-signal zx2_covox_d	: std_logic_vector(7 downto 0);
-signal zx2_ssg_left	: std_logic_vector(9 downto 0);
-signal zx2_ssg_right	: std_logic_vector(9 downto 0);
-signal zx2_covox_left	: std_logic_vector(8 downto 0);
-signal zx2_covox_right	: std_logic_vector(8 downto 0);
 -- zx 3
 signal zx3_sel		: std_logic;
 signal zx3_cpu_do	: std_logic_vector(7 downto 0);
@@ -254,28 +210,12 @@ signal zx3_video_attr	: std_logic_vector(7 downto 0);
 signal zx3_video_border	: std_logic;
 signal zx3_port_xxfe	: std_logic_vector(7 downto 0);
 signal zx3_port_0001	: std_logic_vector(7 downto 0);
-signal zx3_zc_rd	: std_logic;
-signal zx3_zc_wr	: std_logic;
 signal zx3_spi_wr	: std_logic;
 signal zx3_i2c_wr	: std_logic;
 signal zx3_divmmc_cs	: std_logic;
 signal zx3_divmmc_sclk	: std_logic;
 signal zx3_divmmc_mosi	: std_logic;
 signal zx3_divmmc_sel	: std_logic;
-signal zx3_ssg0_a	: std_logic_vector(7 downto 0);
-signal zx3_ssg0_b	: std_logic_vector(7 downto 0);
-signal zx3_ssg0_c	: std_logic_vector(7 downto 0);
-signal zx3_ssg1_a	: std_logic_vector(7 downto 0);
-signal zx3_ssg1_b	: std_logic_vector(7 downto 0);
-signal zx3_ssg1_c	: std_logic_vector(7 downto 0);
-signal zx3_covox_a	: std_logic_vector(7 downto 0);
-signal zx3_covox_b	: std_logic_vector(7 downto 0);
-signal zx3_covox_c	: std_logic_vector(7 downto 0);
-signal zx3_covox_d	: std_logic_vector(7 downto 0);
-signal zx3_ssg_left	: std_logic_vector(9 downto 0);
-signal zx3_ssg_right	: std_logic_vector(9 downto 0);
-signal zx3_covox_left	: std_logic_vector(8 downto 0);
-signal zx3_covox_right	: std_logic_vector(8 downto 0);
 -- Selector
 signal zx_sel		: std_logic_vector(1 downto 0) := "00";
 -- Keyboard
@@ -291,15 +231,6 @@ signal video_hsync	: std_logic;
 signal video_vsync	: std_logic;
 signal video_blank	: std_logic;
 signal video_rgb	: std_logic_vector(5 downto 0);
--- Z-Controller
-signal zc_a		: std_logic;
-signal zc_do_bus	: std_logic_vector(7 downto 0);
-signal zc_di_bus	: std_logic_vector(7 downto 0);
-signal zc_rd		: std_logic;
-signal zc_wr		: std_logic;
-signal zc_cs_n		: std_logic;
-signal zc_sclk		: std_logic;
-signal zc_mosi		: std_logic;
 -- SPI
 signal spi_si		: std_logic;
 signal spi_so		: std_logic;
@@ -321,31 +252,9 @@ signal divmmc_sclk	: std_logic;
 signal divmmc_mosi	: std_logic;
 signal divmmc_sel	: std_logic;
 -- Sound
-signal zx0_sum_left	: std_logic_vector(16 downto 0);
-signal zx1_sum_left	: std_logic_vector(16 downto 0);
-signal zx2_sum_left	: std_logic_vector(16 downto 0);
-signal zx3_sum_left	: std_logic_vector(16 downto 0);
-signal zx0_sum_right	: std_logic_vector(16 downto 0);
-signal zx1_sum_right	: std_logic_vector(16 downto 0);
-signal zx2_sum_right	: std_logic_vector(16 downto 0);
-signal zx3_sum_right	: std_logic_vector(16 downto 0);
-signal ssg_sum_left	: std_logic_vector(10 downto 0);
-signal ssg_sum_right	: std_logic_vector(10 downto 0);
-signal covox_sum_left	: std_logic_vector(9 downto 0);
-signal covox_sum_right	: std_logic_vector(9 downto 0);
-signal sum_left		: std_logic_vector(11 downto 0);
-signal sum_right	: std_logic_vector(11 downto 0);
 signal fx_sum		: std_logic_vector(2 downto 0);
 signal audio_l		: std_logic_vector(18 downto 0);
 signal audio_r		: std_logic_vector(18 downto 0);
--- DMA Sound
-signal dmasound_left_out	: std_logic_vector(16 downto 0);
-signal dmasound_right_out	: std_logic_vector(16 downto 0);
-signal dmasound_mem_adr		: std_logic_vector(23 downto 0);
-signal dmasound_mem_rd		: std_logic;
-signal dmasound_mem_ack		: std_logic;
-signal dmasound_do		: std_logic_vector( 7 downto 0);
-signal dmasound_int		: std_logic;
 -- CLOCK
 signal clk_28mhz	: std_logic;
 signal clk_84mhz	: std_logic;
@@ -471,23 +380,6 @@ port map(
 	KEYJOY		=> kb_joy_bus,
 	KEYSOFT		=> kb_soft_bus,
 	RX		=> RX);
-
--- Z-Controller
-U7: entity work.zcontroller
-port map (
-	RESET		=> reset,
-	CLK		=> clk_28mhz,
-	A		=> zc_a,
-	DI		=> zc_di_bus,
-	DO		=> zc_do_bus,
-	RD		=> zc_rd,
-	WR		=> zc_wr,
-	SDDET		=> SD_DET_n,
-	SDPROT		=> '0',
-	CS_n		=> zc_cs_n,
-	SCLK		=> zc_sclk,
-	MOSI		=> zc_mosi,
-	MISO		=> SD_SO);
 
 -- SPI FLASH 25MHz Max SCK -- Ethernet ENC424J600
 U8: entity work.spi
@@ -626,10 +518,6 @@ port map (
 	KEYBOARD_FN_I	=> kb_fn_bus,
 	KEYBOARD_JOY_I	=> kb_joy_bus,
 	KEYBOARD_SOFT_I	=> kb_soft_bus,
-	-- Z Controller
-	ZC_DAT_I	=> zc_do_bus,
-	ZC_RD_O		=> zx0_zc_rd,
-	ZC_WR_O		=> zx0_zc_wr,
 	-- SPI Controller
 	SPI_DAT_I	=> spi_do_bus,
 	SPI_WR_O	=> zx0_spi_wr,
@@ -642,19 +530,7 @@ port map (
 	DIVMMC_SCLK_O	=> zx0_divmmc_sclk,
 	DIVMMC_MOSI_O	=> zx0_divmmc_mosi,
 	DIVMMC_MISO_I	=> SD_SO,
-	DIVMMC_SEL_O	=> zx0_divmmc_sel,
-	-- TurboSound
-	SSG0_A_O	=> zx0_ssg0_a,
-	SSG0_B_O	=> zx0_ssg0_b,
-	SSG0_C_O	=> zx0_ssg0_c,
-	SSG1_A_O	=> zx0_ssg1_a,
-	SSG1_B_O	=> zx0_ssg1_b,
-	SSG1_C_O	=> zx0_ssg1_c,
-	-- SounDrive
-	COVOX_A_O	=> zx0_covox_a,
-	COVOX_B_O	=> zx0_covox_b,
-	COVOX_C_O	=> zx0_covox_c,
-	COVOX_D_O	=> zx0_covox_d );
+	DIVMMC_SEL_O	=> zx0_divmmc_sel );
 
 -- CPU1
 U14: entity work.zx
@@ -699,10 +575,6 @@ port map (
 	KEYBOARD_FN_I	=> kb_fn_bus,
 	KEYBOARD_JOY_I	=> kb_joy_bus,
 	KEYBOARD_SOFT_I	=> kb_soft_bus,
-	-- Z Controller
-	ZC_DAT_I	=> zc_do_bus,
-	ZC_RD_O		=> zx1_zc_rd,
-	ZC_WR_O		=> zx1_zc_wr,
 	-- SPI Controller
 	SPI_DAT_I	=> spi_do_bus,
 	SPI_WR_O	=> zx1_spi_wr,
@@ -715,19 +587,7 @@ port map (
 	DIVMMC_SCLK_O	=> zx1_divmmc_sclk,
 	DIVMMC_MOSI_O	=> zx1_divmmc_mosi,
 	DIVMMC_MISO_I	=> SD_SO,
-	DIVMMC_SEL_O	=> zx1_divmmc_sel,
-	-- TurboSound
-	SSG0_A_O	=> zx1_ssg0_a,
-	SSG0_B_O	=> zx1_ssg0_b,
-	SSG0_C_O	=> zx1_ssg0_c,
-	SSG1_A_O	=> zx1_ssg1_a,
-	SSG1_B_O	=> zx1_ssg1_b,
-	SSG1_C_O	=> zx1_ssg1_c,
-	-- SounDrive
-	COVOX_A_O	=> zx1_covox_a,
-	COVOX_B_O	=> zx1_covox_b,
-	COVOX_C_O	=> zx1_covox_c,
-	COVOX_D_O	=> zx1_covox_d );
+	DIVMMC_SEL_O	=> zx1_divmmc_sel );
 
 -- CPU2
 U15: entity work.zx
@@ -772,10 +632,6 @@ port map (
 	KEYBOARD_FN_I	=> kb_fn_bus,
 	KEYBOARD_JOY_I	=> kb_joy_bus,
 	KEYBOARD_SOFT_I	=> kb_soft_bus,
-	-- Z Controller
-	ZC_DAT_I	=> zc_do_bus,
-	ZC_RD_O		=> zx2_zc_rd,
-	ZC_WR_O		=> zx2_zc_wr,
 	-- SPI Controller
 	SPI_DAT_I	=> spi_do_bus,
 	SPI_WR_O	=> zx2_spi_wr,
@@ -788,19 +644,7 @@ port map (
 	DIVMMC_SCLK_O	=> zx2_divmmc_sclk,
 	DIVMMC_MOSI_O	=> zx2_divmmc_mosi,
 	DIVMMC_MISO_I	=> SD_SO,
-	DIVMMC_SEL_O	=> zx2_divmmc_sel,
-	-- TurboSound
-	SSG0_A_O	=> zx2_ssg0_a,
-	SSG0_B_O	=> zx2_ssg0_b,
-	SSG0_C_O	=> zx2_ssg0_c,
-	SSG1_A_O	=> zx2_ssg1_a,
-	SSG1_B_O	=> zx2_ssg1_b,
-	SSG1_C_O	=> zx2_ssg1_c,
-	-- SounDrive
-	COVOX_A_O	=> zx2_covox_a,
-	COVOX_B_O	=> zx2_covox_b,
-	COVOX_C_O	=> zx2_covox_c,
-	COVOX_D_O	=> zx2_covox_d );
+	DIVMMC_SEL_O	=> zx2_divmmc_sel );
 
 -- CPU3
 U16: entity work.zx
@@ -845,10 +689,6 @@ port map (
 	KEYBOARD_FN_I	=> kb_fn_bus,
 	KEYBOARD_JOY_I	=> kb_joy_bus,
 	KEYBOARD_SOFT_I	=> kb_soft_bus,
-	-- Z Controller
-	ZC_DAT_I	=> zc_do_bus,
-	ZC_RD_O		=> zx3_zc_rd,
-	ZC_WR_O		=> zx3_zc_wr,
 	-- SPI Controller
 	SPI_DAT_I	=> spi_do_bus,
 	SPI_WR_O	=> zx3_spi_wr,
@@ -861,19 +701,7 @@ port map (
 	DIVMMC_SCLK_O	=> zx3_divmmc_sclk,
 	DIVMMC_MOSI_O	=> zx3_divmmc_mosi,
 	DIVMMC_MISO_I	=> SD_SO,
-	DIVMMC_SEL_O	=> zx3_divmmc_sel,
-	-- TurboSound
-	SSG0_A_O	=> zx3_ssg0_a,
-	SSG0_B_O	=> zx3_ssg0_b,
-	SSG0_C_O	=> zx3_ssg0_c,
-	SSG1_A_O	=> zx3_ssg1_a,
-	SSG1_B_O	=> zx3_ssg1_b,
-	SSG1_C_O	=> zx3_ssg1_c,
-	-- SounDrive
-	COVOX_A_O	=> zx3_covox_a,
-	COVOX_B_O	=> zx3_covox_b,
-	COVOX_C_O	=> zx3_covox_c,
-	COVOX_D_O	=> zx3_covox_d );
+	DIVMMC_SEL_O	=> zx3_divmmc_sel );
  
 -------------------------------------------------------------------------------
 -- Формирование глобальных сигналов
@@ -908,47 +736,18 @@ DCLK <= spi_clk;
 
 -------------------------------------------------------------------------------
 -- Stereo Adder (parallel)
-zx0_ssg_left <= ("00" & zx0_ssg0_c) + ("00" & zx0_ssg0_b) + ("00" & zx0_ssg1_c) + ("00" & zx0_ssg1_b);
-zx1_ssg_left <= ("00" & zx1_ssg0_c) + ("00" & zx1_ssg0_b) + ("00" & zx1_ssg1_c) + ("00" & zx1_ssg1_b);
-zx2_ssg_left <= ("00" & zx2_ssg0_c) + ("00" & zx2_ssg0_b) + ("00" & zx2_ssg1_c) + ("00" & zx2_ssg1_b);
-zx3_ssg_left <= ("00" & zx3_ssg0_c) + ("00" & zx3_ssg0_b) + ("00" & zx3_ssg1_c) + ("00" & zx3_ssg1_b);
-
-zx0_ssg_right <= ("00" & zx0_ssg0_a) + ("00" & zx0_ssg0_b) + ("00" & zx0_ssg1_a) + ("00" & zx0_ssg1_b);
-zx1_ssg_right <= ("00" & zx1_ssg0_a) + ("00" & zx1_ssg0_b) + ("00" & zx1_ssg1_a) + ("00" & zx1_ssg1_b);
-zx2_ssg_right <= ("00" & zx2_ssg0_a) + ("00" & zx2_ssg0_b) + ("00" & zx2_ssg1_a) + ("00" & zx2_ssg1_b);
-zx3_ssg_right <= ("00" & zx3_ssg0_a) + ("00" & zx3_ssg0_b) + ("00" & zx3_ssg1_a) + ("00" & zx3_ssg1_b);
-
-zx0_covox_left <= ('0' & zx0_covox_c) + ('0' & zx0_covox_d);
-zx1_covox_left <= ('0' & zx1_covox_c) + ('0' & zx1_covox_d);
-zx2_covox_left <= ('0' & zx2_covox_c) + ('0' & zx2_covox_d);
-zx3_covox_left <= ('0' & zx3_covox_c) + ('0' & zx3_covox_d);
-
-zx0_covox_right <= ('0' & zx0_covox_a) + ('0' & zx0_covox_b);
-zx1_covox_right <= ('0' & zx1_covox_a) + ('0' & zx1_covox_b);
-zx2_covox_right <= ('0' & zx2_covox_a) + ('0' & zx2_covox_b);
-zx3_covox_right <= ('0' & zx3_covox_a) + ('0' & zx3_covox_b);
-
-ssg_sum_left  <= ('0' & zx0_ssg_left)  + ('0' & zx1_ssg_left)  + ('0' & zx2_ssg_left)  + ('0' & zx3_ssg_left);
-ssg_sum_right <= ('0' & zx0_ssg_right) + ('0' & zx1_ssg_right) + ('0' & zx2_ssg_right) + ('0' & zx3_ssg_right);
-
-covox_sum_left  <= ('0' & zx0_covox_left)  + ('0' & zx1_covox_left)  + ('0' & zx2_covox_left)  + ('0' & zx3_covox_left);
-covox_sum_right <= ('0' & zx0_covox_right) + ('0' & zx1_covox_right) + ('0' & zx2_covox_right) + ('0' & zx3_covox_right);
-
 fx_sum <= ("00" & zx0_port_xxfe(4)) + ("00" & zx1_port_xxfe(4)) + ("00" & zx2_port_xxfe(4)) + ("00" & zx3_port_xxfe(4));
 
-sum_left  <= ('0' & ssg_sum_left)  + ("00" & covox_sum_left);
-sum_right <= ('0' & ssg_sum_right) + ("00" & covox_sum_right);
-
-audio_l <= ("000" & fx_sum & "0000000000000") + ("00" & sum_left & "00000")  + ("00" & dmasound_left_out);
-audio_r <= ("000" & fx_sum & "0000000000000") + ("00" & sum_right & "00000") + ("00" & dmasound_right_out);
+audio_l <= ("000" & fx_sum & "0000000000000");
+audio_r <= ("000" & fx_sum & "0000000000000");
 
 ------------------------------------------------------------------------------
 areset <= not RST_n;
 reset <= areset or kb_soft_bus(0) or not locked0 or not locked1;	-- ZX_RESET
 -- SD Card					
-SD_CS_n	<= divmmc_cs_n when divmmc_sel = '1' else zc_cs_n;
-SD_CLK 	<= divmmc_sclk when divmmc_sel = '1' else zc_sclk;
-SD_SI 	<= divmmc_mosi when divmmc_sel = '1' else zc_mosi;
+SD_CS_n	<= divmmc_cs_n when divmmc_sel = '1' else '1';
+SD_CLK 	<= divmmc_sclk when divmmc_sel = '1' else '0';
+SD_SI 	<= divmmc_mosi when divmmc_sel = '1' else '0';
 
 -------------------------------------------------------------------------------
 -- Функциональные клавиши Fx
@@ -983,11 +782,11 @@ begin
 	end if;
 end process;
 
-process (zx0_cpu_a, zx0_cpu_do, zx0_zc_rd, zx0_zc_wr, zx0_i2c_wr, zx0_divmmc_cs, zx0_divmmc_sclk, zx0_divmmc_mosi, zx0_spi_wr, zx0_port_0001, zx0_divmmc_sel,
-	 zx1_cpu_a, zx1_cpu_do, zx1_zc_rd, zx1_zc_wr, zx1_i2c_wr, zx1_divmmc_cs, zx1_divmmc_sclk, zx1_divmmc_mosi, zx1_spi_wr, zx1_port_0001, zx1_divmmc_sel,
-	 zx2_cpu_a, zx2_cpu_do, zx2_zc_rd, zx2_zc_wr, zx2_i2c_wr, zx2_divmmc_cs, zx2_divmmc_sclk, zx2_divmmc_mosi, zx2_spi_wr, zx2_port_0001, zx2_divmmc_sel,
-	 zx3_cpu_a, zx3_cpu_do, zx3_zc_rd, zx3_zc_wr, zx3_i2c_wr, zx3_divmmc_cs, zx3_divmmc_sclk, zx3_divmmc_mosi, zx3_spi_wr, zx3_port_0001, zx3_divmmc_sel,
-	 zx_sel, port_0001, kb_a_bus, zc_a, zc_di_bus, zc_rd, zc_wr, spi_a, spi_di_bus, spi_wr, divmmc_cs_n, divmmc_sclk, divmmc_mosi)
+process (zx0_cpu_a, zx0_cpu_do, zx0_i2c_wr, zx0_divmmc_cs, zx0_divmmc_sclk, zx0_divmmc_mosi, zx0_spi_wr, zx0_port_0001, zx0_divmmc_sel,
+	 zx1_cpu_a, zx1_cpu_do, zx1_i2c_wr, zx1_divmmc_cs, zx1_divmmc_sclk, zx1_divmmc_mosi, zx1_spi_wr, zx1_port_0001, zx1_divmmc_sel,
+	 zx2_cpu_a, zx2_cpu_do, zx2_i2c_wr, zx2_divmmc_cs, zx2_divmmc_sclk, zx2_divmmc_mosi, zx2_spi_wr, zx2_port_0001, zx2_divmmc_sel,
+	 zx3_cpu_a, zx3_cpu_do, zx3_i2c_wr, zx3_divmmc_cs, zx3_divmmc_sclk, zx3_divmmc_mosi, zx3_spi_wr, zx3_port_0001, zx3_divmmc_sel,
+	 zx_sel, port_0001, kb_a_bus, spi_a, spi_di_bus, spi_wr, divmmc_cs_n, divmmc_sclk, divmmc_mosi)
 begin
 	zx0_sel <= '0';
 	zx1_sel <= '0';
@@ -1000,11 +799,6 @@ begin
 			port_0001   <= zx0_port_0001;
 			-- Keyboard Controller
 			kb_a_bus    <= zx0_cpu_a(15 downto 8);
-			-- Z Controller
-			zc_a	    <= zx0_cpu_a(5);
-			zc_di_bus   <= zx0_cpu_do;
-			zc_rd       <= zx0_zc_rd;
-			zc_wr       <= zx0_zc_wr;
 			-- SPI Controller
 			spi_a       <= zx0_cpu_a(0);
 			spi_di_bus  <= zx0_cpu_do;
@@ -1023,11 +817,6 @@ begin
 			port_0001   <= zx1_port_0001;
 			-- Keyboard Controller
 			kb_a_bus    <= zx1_cpu_a(15 downto 8);
-			-- Z Controller
-			zc_a	    <= zx1_cpu_a(5);
-			zc_di_bus   <= zx1_cpu_do;
-			zc_rd       <= zx1_zc_rd;
-			zc_wr       <= zx1_zc_wr;
 			-- SPI Controller
 			spi_a       <= zx1_cpu_a(0);
 			spi_di_bus  <= zx1_cpu_do;
@@ -1046,11 +835,6 @@ begin
 			port_0001   <= zx2_port_0001;
 			-- Keyboard Controller
 			kb_a_bus    <= zx2_cpu_a(15 downto 8);
-			-- Z Controller
-			zc_a	    <= zx2_cpu_a(5);
-			zc_di_bus   <= zx2_cpu_do;
-			zc_rd       <= zx2_zc_rd;
-			zc_wr       <= zx2_zc_wr;
 			-- SPI Controller
 			spi_a       <= zx2_cpu_a(0);
 			spi_di_bus  <= zx2_cpu_do;
@@ -1069,11 +853,6 @@ begin
 			port_0001   <= zx3_port_0001;
 			-- Keyboard Controller
 			kb_a_bus    <= zx3_cpu_a(15 downto 8);
-			-- Z Controller
-			zc_a	    <= zx3_cpu_a(5);
-			zc_di_bus   <= zx3_cpu_do;
-			zc_rd       <= zx3_zc_rd;
-			zc_wr       <= zx3_zc_wr;
 			-- SPI Controller
 			spi_a       <= zx3_cpu_a(0);
 			spi_di_bus  <= zx3_cpu_do;
