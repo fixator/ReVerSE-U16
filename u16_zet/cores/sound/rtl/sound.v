@@ -50,6 +50,7 @@ module sound (
     input         wb_we_i,
     output reg    wb_ack_o,
 
+    input  speaker,
     output audio_l,
     output audio_r
   );
@@ -196,7 +197,7 @@ module sound (
   // --------------------------------------------------------------------
     reg [7:0] dsp_audio_l;
     reg [7:0] dsp_audio_r;
-    sound_dac8 left (pwm_clk, dsp_audio_l, audio_l);  // 8 bit pwm DAC
-    sound_dac8 right(pwm_clk, dsp_audio_r, audio_r);  // 8 bit pwm DAC
+    sound_dac8 left (pwm_clk, dsp_audio_l, speaker, audio_l);  // 8 bit pwm DAC
+    sound_dac8 right(pwm_clk, dsp_audio_r, speaker, audio_r);  // 8 bit pwm DAC
 
 endmodule

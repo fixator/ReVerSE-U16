@@ -20,13 +20,14 @@
 module sound_dac8 (
     input        clk,
     input  [7:0] dac_in,
+    input        speaker,
     output       audio_out
   );
 
-  reg [8:0] dac_register;
+  reg [9:0] dac_register;
 
-  assign audio_out = dac_register[8];
+  assign audio_out = dac_register[9];
 
-  always @(posedge clk) dac_register <= dac_register[7:0] + dac_in;
+  always @(posedge clk) dac_register <= dac_register[7:0] + dac_in + {speaker,7'b0000000};
 
 endmodule

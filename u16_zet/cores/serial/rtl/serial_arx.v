@@ -19,7 +19,7 @@
 
 module serial_arx (
     input  clk,
-    input  rxd,
+    input  rxd,       // <=====================INPUT!!!!!!!!!!!!!!!!!!!!!!!!!
     input  baud8tick, // Desired baud rate
 
     output reg [7:0] rxd_data,
@@ -30,8 +30,18 @@ module serial_arx (
     // sent in burst so that multiple characters can be treated as a "packet"
     output reg rxd_endofpacket,  // one clock pulse, when no more data
                              // is received (rxd_idle is going high)
-    output rxd_idle  // no data is being received
+    output rxd_idle,  // no data is being received
+	 ///////////////////
+	 output TEST1,
+	 output TEST2,
+	 output TEST3,
+	 output TEST4
   );
+  
+  assign TEST1 = clk;
+  assign TEST2 = baud8tick;
+  assign TEST3 = rxd_sync_inv[1];
+  assign TEST4 = rxd;
 
   reg [1:0] rxd_sync_inv;  // we invert rxd, so that the idle becomes "0", to prevent a phantom character to be received at startup
   always @(posedge clk) if(baud8tick) rxd_sync_inv <= {rxd_sync_inv[0], ~rxd};

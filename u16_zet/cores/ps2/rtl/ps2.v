@@ -31,11 +31,18 @@ module ps2 (
     output        wb_ack_o,  // Normal bus termination
     output        wb_tgk_o,  // Interrupt request
     output        wb_tgm_o,  // Interrupt request
+	 /////////WD timer//////////////////////////////////////
+	 output soft_reset,
+	 output debug_o,            // Debug PIN 
 
-    input ps2_kbd_clk_,  // PS2 Keyboard Clock, Bidirectional
-    inout ps2_kbd_dat_,  // PS2 Keyboard Data, Bidirectional
-    inout ps2_mse_clk_,  // PS2 Mouse Clock, Bidirectional
-    inout ps2_mse_dat_   // PS2 Mouse Data, Bidirectional
+    //input ps2_kbd_clk_,  // PS2 Keyboard Clock, Bidirectional
+    //inout ps2_kbd_dat_,  // PS2 Keyboard Data, Bidirectional
+    inout ps2_mse_clk_,   // PS2 Mouse Clock, Bidirectional
+    inout ps2_mse_dat_,   // PS2 Mouse Data, Bidirectional
+	 input usb_rx_,
+	 //===========================
+	 output [ 1:0] TST      // TEST Pins
+	 
   );
 
   // --------------------------------------------------------------------
@@ -133,6 +140,7 @@ module ps2 (
 
   reg   MSE_INT;            // Mouse Receive interrupt signal
   wire  PS_READ;
+  wire  KB_READ; 
 
   wire [7:0]  MSE_dat_o;        // Receive Register
   wire [7:0]  MSE_dat_i;
@@ -149,7 +157,17 @@ module ps2 (
 
   // Unused output
   wire released;
-
+  //wire soft_reset;
+  wire [4:0] KF;
+  wire [4:0] KJ;
+  
+  /////////WD TIMER /////////
+  reg [ 11:0] WD_timer_clk_r;
+  reg WD_timer_clk;
+  reg [4:0] WD_timer_r;
+  reg  NEW_BATCH;
+  wire BATCH_SEL;
+  
 /*
  * We comment this out as they are never read
  *
@@ -219,6 +237,14 @@ module ps2 (
 
 `define PS2_DAT_REG    3'b000    // 0x60 - RW Transmit / Receive register
 `define PS2_CMD_REG    3'b100    // 0x64 - RW - Status / command register
+///
+`define PS2_BATCH_REG  3'b010    // 0x62 - RD - New BATCH (BATCH-3 bytes from mouse)
+
+
+
+ assign TST[0] = KBD_INT;
+ assign TST[1] = KB_READ;
+
 
   // --------------------------------------------------------------------
   // Command Behavior
@@ -315,25 +341,42 @@ module ps2 (
   // --------------------------------------------------------------------
   // Instantiate the PS2 UART for KEYBOARD
   // --------------------------------------------------------------------
-  ps2_keyb #(
-    .TIMER_60USEC_VALUE_PP (750),
-    .TIMER_60USEC_BITS_PP  (10),
-    .TIMER_5USEC_VALUE_PP  (60),
-    .TIMER_5USEC_BITS_PP   (6)
-    ) keyb (
-    .clk   (wb_clk_i),
-    .reset (wb_rst_i),
+  //ps2_keyb #(
+  //  .TIMER_60USEC_VALUE_PP (750),
+  //  .TIMER_60USEC_BITS_PP  (10),
+  //  .TIMER_5USEC_VALUE_PP  (60),
+  //  .TIMER_5USEC_BITS_PP   (6)
+  // ) keyb (
+  //  .clk   (wb_clk_i),
+  //  .reset (wb_rst_i),
 
-    .rx_shifting_done (KBD_Rxdone), // done receivign
-    .tx_shifting_done (KBD_Txdone), // done transmiting
+  //  .rx_shifting_done (KBD_Rxdone), // done receivign
+  //  .tx_shifting_done (KBD_Txdone), // done transmiting
 
-    .scancode         (KBD_dat_o), // scancode
-    .rx_output_strobe (KBD_INT),   // Signals a key presseed
-    .released         (released),
+  //  .scancode         (KBD_dat_o), // scancode
+  //  .rx_output_strobe (KBD_INT),   // Signals a key presseed
+  //  .released         (released),
 
-    .ps2_clk_  (ps2_kbd_clk_), // PS2 PAD signals
-    .ps2_data_ (ps2_kbd_dat_)
-  );
+  //  .ps2_clk_  (ps2_kbd_clk_), // PS2 PAD signals
+  //  .ps2_data_ (ps2_kbd_dat_)
+  //);
+ 
+  usb_keyb usb_keyb (
+  	.CLK     (wb_clk_i),
+	.RESET	(wb_rst_i),
+   //-------------------------------------------
+	.KEYF		(KF), //[4: 0];
+	.KEYJOY	(KJ), //[4: 0];
+	//----------------------------------------------------------------
+	.SCANCODE_RD_n (~KB_READ),    // active LO
+	.SCANCODE	   (KBD_dat_o),   //--> OUT[7: 0];
+	.FIFO_b        (KBD_INT),     //--> RX FIFO not empy active HI
+	//----------------------------------------------------------------
+	.RST_OUT		   (soft_reset),
+	//--------------------------------------------
+	.RX				(usb_rx_) //                    --< USB_RX
+   );
+  assign KBD_Txdone = 1'b1;
 
   // Combinatorial logic
   assign dat_i    =  wb_sel_i[0] ? wb_dat_i[7:0]  : wb_dat_i[15:8]; // 8 to 16 bit WB
@@ -358,7 +401,8 @@ module ps2 (
   assign PS_INT = PS_CNTL[0];  // 0: IBF Interrupt Disabled, 1: IBF Interrupt Enabled - Keyboard driver at software int 0x09 handles input.
   assign PS_INT2 = PS_CNTL[1];  // 0: Auxillary IBF Interrupt Disabled, 1: Auxillary IBF Interrupt Enabled
 
-  assign DAT_SEL = (wb_ps2_addr == `PS2_DAT_REG);
+  assign DAT_SEL =   (wb_ps2_addr == `PS2_DAT_REG);
+  assign BATCH_SEL = (wb_ps2_addr == `PS2_BATCH_REG); // My 0x62
   assign DAT_wr = DAT_SEL && write_i;
   assign DAT_rd = DAT_SEL && read_i;
 
@@ -371,18 +415,59 @@ module ps2 (
   assign CMD_mit = CMD_wr  && (dat_i == `PS2_CMD_A9);  // User mouse interface test
 
   assign dat_o = d_dat_o;  // Select register
-  assign d_dat_o = DAT_SEL    ? r_dat_o   : PS_STAT;  // Select register
-  assign r_dat_o = cnt_r_flag ? PS_CNTL   : t_dat_o;  // return control or data
-  assign t_dat_o = cmd_r_test ? ps_tst_o  : i_dat_o;  // return control or data
-  assign i_dat_o = cmd_r_mint ? ps_mit_o  : p_dat_o;  // return control or data
-  assign p_dat_o = MSE_INT    ? MSE_dat_o : KBD_dat_o;  // defer to mouse
-  assign ps_tst_o = 8'h55;                // Controller self test
-  assign ps_mit_o = 8'h00;                // Controller self test
+  assign d_dat_o = BATCH_SEL ? {7'b1010000, NEW_BATCH} :( DAT_SEL ? r_dat_o : PS_STAT);  // Select register
+  assign r_dat_o = cnt_r_flag ? PS_CNTL   : t_dat_o;   // return control or data
+  assign t_dat_o = cmd_r_test ? ps_tst_o  : i_dat_o;   // return control or data
+  assign i_dat_o = cmd_r_mint ? ps_mit_o  : p_dat_o;   // return control or data
+  assign p_dat_o = MSE_INT    ? MSE_dat_o : KBD_dat_o; // defer to mouse
+  assign ps_tst_o = 8'h55;                 // Controller self test
+  assign ps_mit_o = 8'h00;                 // Controller self test
   assign cmd_msnd = cmd_w_msnd && DAT_wr;  // OK to write to mouse
   assign IBF = MSE_INT || KBD_INT || cnt_r_flag || cmd_r_test || cmd_r_mint;
   assign PS_READ = DAT_rd && !(cnt_r_flag || cmd_r_test || cmd_r_mint);
-  assign      MSE_dat_i = dat_i;    // Transmit register
+  assign MSE_dat_i = dat_i;    // Transmit register
   assign MSE_SEND = cmd_msnd;  // Signal to transmit data
+  //----------2015.04.18 
+  assign KB_READ = PS_READ && !MSE_INT;
+  
+  /////////////////////WD Timer ///////////////////////////////////////////////////
+  assign debug_o = NEW_BATCH; //
+  // WD_timer_clk - 10kHz (Interval ~ 0.1ms)-----------------
+  always @(posedge wb_clk_i) begin // 12.5 MHz 
+    if(wb_rst_i) // reset is active HI
+		begin
+			WD_timer_clk_r <= 12'h4e2; //1250
+			WD_timer_clk <= 1'b1;
+		end
+    else if(WD_timer_clk_r == 12'h000)
+		begin 
+			WD_timer_clk_r <= 12'h4e2; //1250
+			WD_timer_clk <= 1'b1;       
+		end
+	 else
+		begin  
+			WD_timer_clk_r <= WD_timer_clk_r - 12'h001;
+			WD_timer_clk <= 1'b0;
+		end
+  end
+  //---------------------------------------------------------------
+  always @(posedge WD_timer_clk) begin // 10kHz 
+  if(wb_tgm_o) // reset is active HI MOUSE IRQ
+		begin
+			WD_timer_r <= 5'h0; //reset not immediately (at once)
+		end
+  else if(WD_timer_r != 5'h1F) 
+		WD_timer_r = WD_timer_r + 5'd1; 
+  end
+  
+  // Interrupt request Hi - Copy WD_REG_value 0-8ms [8 bit reg]----
+  always @(posedge wb_tgm_o) begin 
+	NEW_BATCH = WD_timer_r[4];  // 1- New batch
+  end 
+  
+  //===================
+  
+  
 
 endmodule
 

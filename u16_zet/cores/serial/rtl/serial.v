@@ -32,7 +32,13 @@ module serial (
     output        wb_tgc_o,  // Interrupt request
 
     output rs232_tx,  // RS232 output
-    input  rs232_rx   // RS232 input
+    input  rs232_rx,  // RS232 input
+	 
+	 //////////////////////////////////////////////////
+	 output TEST1,
+	 output TEST2,
+	 output TEST3,
+	 output TEST4
   );
 
   // --------------------------------------------------------------------
@@ -262,7 +268,7 @@ module serial (
               `UART_RG_IE: dat_o <= dlab ? dlh : INTE;
               `UART_RG_II: dat_o <= ISTAT;        // Interupt ID
               `UART_RG_LC: dat_o <= LCON;         // Line control
-              `UART_RG_MC: dat_o <= MCON;        // Modem Control Register
+              `UART_RG_MC: dat_o <= MCON;         // Modem Control Register
               `UART_RG_LS: dat_o <= LSTAT;        // Line status
               `UART_RG_MS: dat_o <= MSTAT;        // Modem Status
               `UART_RG_SR: dat_o <= 8'h00;        // No Scratch register
@@ -304,12 +310,17 @@ module serial (
 
   serial_arx arx (
     .clk             (wb_clk_i),
-    .baud8tick       (Baud8Tick),
+    .baud8tick       (Baud8Tick),  //<=======
     .rxd             (rs232_rx),
     .rxd_data_ready  (rx_drdy),
     .rxd_data        (output_data),
     .rxd_endofpacket (rxd_endofpacket),
-    .rxd_idle        (rx_idle)
+    .rxd_idle        (rx_idle),
+	 ///////////////////////////////////
+	 .TEST1            (TEST1),
+	 .TEST2            (TEST2),
+	 .TEST3            (TEST3),
+	 .TEST4            (TEST4)
   );
 
   serial_atx atx (
@@ -412,5 +423,7 @@ module serial (
   assign Baudiv = {3'b000,dlh,dll};
   assign Baud1Tick = BaudAcc1[18];
   assign BaudInc =  19'd2416/Baudiv;
+  //2013_06_19
+  assign Baud8Tick = BaudAcc8[15];
 
 endmodule
