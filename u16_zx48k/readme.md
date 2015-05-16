@@ -1,13 +1,14 @@
-#### Реплика ZX-48K на ReVerSE-U16
+#### ZX-48K
 ![image](screen.png)
 
-ПЗУ: 16K
+CPU: NextZ80 @ 50MHz
 
-ОЗУ: 48K
+ROM: 16K
 
-Видео: HDMI 640x480@60Hz
+RAM: 48K
 
-Звук: Бипер (Delta-sigma лывый и правый аудио каналы)
+Video: HDMI 640x480 @ 60Hz
 
-Клавиатура: USB
+Sound: Beeper (Delta-sigma stereo)
 
+Keyboard: USB
