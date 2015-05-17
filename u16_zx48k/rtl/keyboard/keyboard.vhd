@@ -1,4 +1,4 @@
--------------------------------------------------------------------[16.05.2015]
+-------------------------------------------------------------------[17.05.2015]
 -- KEYBOARD CONTROLLER USB HID scancode to Spectrum matrix conversion
 -------------------------------------------------------------------------------
 -- Engineer: 	MVV
@@ -137,44 +137,62 @@ begin
 				when X"05" => keys(7)(4) <= '0'; -- B
 
 				-- Cursor keys
-				when X"50" => keys(0)(0) <= '0'; -- Left (CAPS 5)
-							  keys(3)(4) <= '0';
-				when X"51" => keys(0)(0) <= '0'; -- Down (CAPS 6)
-							  keys(4)(4) <= '0';
-				when X"52" => keys(0)(0) <= '0'; -- Up (CAPS 7)
-							  keys(4)(3) <= '0';
-				when X"4f" => keys(0)(0) <= '0'; -- Right (CAPS 8)
-							  keys(4)(2) <= '0';
+				when X"50" =>
+					keys(0)(0) <= '0'; -- Left (CAPS 5)
+					keys(3)(4) <= '0';
+				when X"51" =>
+					keys(0)(0) <= '0'; -- Down (CAPS 6)
+					keys(4)(4) <= '0';
+				when X"52" =>
+					keys(0)(0) <= '0'; -- Up (CAPS 7)
+					keys(4)(3) <= '0';
+				when X"4f" =>
+					keys(0)(0) <= '0'; -- Right (CAPS 8)
+					keys(4)(2) <= '0';
 
 				-- Other special keys sent to the ULA as key combinations
-				when X"2a" => keys(0)(0) <= '0'; -- Backspace (CAPS 0)
-							  keys(4)(0) <= '0';
-				when X"39" => keys(0)(0) <= '0'; -- Caps lock (CAPS 2)
-							keys(3)(1) <= '0';
-				when X"2b" => keys(0)(0) <= '0'; -- Tab (CAPS SPACE)
-						  keys(7)(0) <= '0';
-				when X"37" => keys(7)(2) <= '0'; -- .
-							keys(7)(1) <= '0';
-				when X"2d" => keys(6)(3) <= '0'; -- -
-							keys(7)(1) <= '0';
-				when X"35" => keys(3)(0) <= '0'; -- ` (EDIT)
-							keys(0)(0) <= '0';
-				when X"36" => keys(7)(3) <= '0'; -- ,
-							keys(7)(1) <= '0';
-				when X"33" => keys(5)(1) <= '0'; -- ;
-							keys(7)(1) <= '0';
-				when X"34" => keys(5)(0) <= '0'; -- "
-							keys(7)(1) <= '0';
-				when X"31" => keys(0)(1) <= '0'; -- :
-							keys(7)(1) <= '0';
-				when X"2e" => keys(6)(1) <= '0'; -- =
-							keys(7)(1) <= '0';
-				when X"2f" => keys(4)(2) <= '0'; -- (
-							keys(7)(1) <= '0';
-				when X"30" => keys(4)(1) <= '0'; -- )
-							keys(7)(1) <= '0';
-				when X"38" => keys(0)(3) <= '0'; -- ?
-							keys(7)(1) <= '0';
+				when X"2a" =>
+					keys(0)(0) <= '0'; -- Backspace (CAPS 0)
+					keys(4)(0) <= '0';
+				when X"39" =>
+					keys(0)(0) <= '0'; -- Caps lock (CAPS 2)
+					keys(3)(1) <= '0';
+				when X"2b" =>
+					keys(0)(0) <= '0'; -- Tab (CAPS SPACE)
+					keys(7)(0) <= '0';
+				when X"37" =>
+					keys(7)(2) <= '0'; -- .
+					keys(7)(1) <= '0';
+				when X"2d" =>
+					keys(6)(3) <= '0'; -- -
+					keys(7)(1) <= '0';
+				when X"35" =>
+					keys(3)(0) <= '0'; -- ` (EDIT)
+					keys(0)(0) <= '0';
+				when X"36" =>
+					keys(7)(3) <= '0'; -- ,
+					keys(7)(1) <= '0';
+				when X"33" =>
+					keys(5)(1) <= '0'; -- ;
+					keys(7)(1) <= '0';
+				when X"34" =>
+					keys(5)(0) <= '0'; -- "
+					keys(7)(1) <= '0';
+				when X"31" =>
+					keys(0)(1) <= '0'; -- :
+					keys(7)(1) <= '0';
+				when X"2e" =>
+					keys(6)(1) <= '0'; -- =
+					keys(7)(1) <= '0';
+				when X"2f" =>
+					keys(4)(2) <= '0'; -- (
+					keys(7)(1) <= '0';
+				when X"30" =>
+					keys(4)(1) <= '0'; -- )
+					keys(7)(1) <= '0';
+				when X"38" =>
+					keys(0)(3) <= '0'; -- ?
+					keys(7)(1) <= '0';
 				--------------------------------------------
 				-- Kempston keys
 				when X"5e" => keys(8)(0) <= '1'; -- [6] (Right)

@@ -40,14 +40,14 @@
 `timescale 1ns / 1ps
 
 module Z80Reg(
-	input wire [7:0]rstatus,	// 0=af-af', 1=exx, 2=hl-de, 3=hl'-de',4=hl-ixy, 5=ix-iy, 6=IFF1, 7=IFF2
+	input wire [7:0]rstatus, // 0=af-af', 1=exx, 2=hl-de, 3=hl'-de',4=hl-ixy, 5=ix-iy, 6=IFF1, 7=IFF2
 	input wire M1,
-	input wire [5:0]WE,			// 5 = flags, 4 = PC, 3 = SP, 2 = tmpHI, 1 = hi, 0 = lo
+	input wire [5:0]WE, // 5 = flags, 4 = PC, 3 = SP, 2 = tmpHI, 1 = hi, 0 = lo
 	input wire CLK,
-	input wire [15:0]ALU8OUT,	// CPU data out bus (output of alu8)
-	input wire [7:0]DI,			// CPU data in bus
-	output reg [7:0]DO,			// CPU data out bus
-	input wire [15:0]ADDR,		// CPU addr bus
+	input wire [15:0]ALU8OUT, // CPU data out bus (output of alu8)
+	input wire [7:0]DI, // CPU data in bus
+	output reg [7:0]DO, // CPU data out bus
+	input wire [15:0]ADDR, // CPU addr bus
 	input wire [7:0]CONST,
 	output reg [7:0]ALU80,
 	output reg [7:0]ALU81,
@@ -56,30 +56,30 @@ module Z80Reg(
 	input wire [7:0]ALU8FLAGS,			
 	output wire [7:0]FLAGS,
 	
-	input wire [1:0]DO_SEL,		// select DO betwen ALU8OUT lo and th register
-	input wire ALU160_sel,		// 0=REG_RSEL, 1=PC
-	input wire [3:0]REG_WSEL,	// rdow:    	[3:1] 0=BC, 1=DE, 2=HL, 3=A-TL, 4=I-x  ----- [0] = 0HI,1LO
-	input wire [3:0]REG_RSEL,	// mux_rdor:   [3:1] 0=BC, 1=DE, 2=HL, 3=A-TL, 4=I-R, 5=SP, 7=tmpSP   ----- [0] = 0HI, 1LO
-	input wire DINW_SEL,			// select RAM write data between (0)ALU8OUT, and 1(DI)
-	input wire XMASK,				// 0 if REG_WSEL should not use IX, IY, even if rstatus[4] == 1
-	input wire [2:0]ALU16OP,	// ALU16OP
-	input wire WAIT				// wait
+	input wire [1:0]DO_SEL, // select DO betwen ALU8OUT lo and th register
+	input wire ALU160_sel, // 0=REG_RSEL, 1=PC
+	input wire [3:0]REG_WSEL, // rdow: [3:1] 0=BC, 1=DE, 2=HL, 3=A-TL, 4=I-x  ----- [0] = 0HI,1LO
+	input wire [3:0]REG_RSEL, // mux_rdor: [3:1] 0=BC, 1=DE, 2=HL, 3=A-TL, 4=I-R, 5=SP, 7=tmpSP   ----- [0] = 0HI, 1LO
+	input wire DINW_SEL, // select RAM write data between (0)ALU8OUT, and 1(DI)
+	input wire XMASK, // 0 if REG_WSEL should not use IX, IY, even if rstatus[4] == 1
+	input wire [2:0]ALU16OP, // ALU16OP
+	input wire WAIT // wait
 	);
 	
 // latch registers
-	reg [15:0]pc=0;				// program counter
-	reg [15:0]sp;					// stack pointer
-	reg [7:0]r;						// refresh
+	reg [15:0]pc=0; // program counter
+	reg [15:0]sp; // stack pointer
+	reg [7:0]r; // refresh
 	reg [15:0]flg = 0;
-	reg [7:0]th;					// temp high
+	reg [7:0]th; // temp high
 
 // internal wires	
-	wire [15:0]rdor;		// R out from RAM
-	wire [15:0]rdow;		// W out from RAM
-	wire [3:0]SELW;		// RAM W port sel
-	wire [3:0]SELR;		// RAM R port sel
-	reg  [15:0]DIN;		// RAM W in data
-	reg [15:0]mux_rdor;	// (3)A reversed mixed with TL, (4)I mixed with R (5)SP
+	wire [15:0]rdor; // R out from RAM
+	wire [15:0]rdow; // W out from RAM
+	wire [3:0]SELW; // RAM W port sel
+	wire [3:0]SELR; // RAM R port sel
+	reg  [15:0]DIN; // RAM W in data
+	reg [15:0]mux_rdor; // (3)A reversed mixed with TL, (4)I mixed with R (5)SP
 	
 	// RAM16X1D x16
 	reg  [7:0] REGH [0:15];
@@ -96,9 +96,9 @@ module Z80Reg(
 	
 	//[3:1] 0=BC, 1=DE, 2=HL, 3=A-TL, 4=I-x 
 	
-	wire	R_BC = {REGH[0], REGL[0]};
-	wire	R_DE = {REGH[1], REGL[1]};
-	wire	R_HL = {REGH[2], REGL[2]};
+//	wire R_BC = {REGH[0], REGL[0]};
+//	wire R_DE = {REGH[1], REGL[1]};
+//	wire R_HL = {REGH[2], REGL[2]};
 	
 	/*initial
 	begin
@@ -157,13 +157,13 @@ module Z80Reg(
 		ALU160 = ALU160_sel ? pc : mux_rdor;
 		
 		case({REG_WSEL[3], DO_SEL})
-			0:	DO = ALU80;
-			1:	DO = th;
+			0: DO = ALU80;
+			1: DO = th;
 			2: DO = FLAGS;
 			3: DO = ALU8OUT[7:0];
 			4: DO = pc[15:8];
 			5: DO = pc[7:0];
-			6:	DO = sp[15:8];
+			6: DO = sp[15:8];
 			7: DO = sp[7:0];
 		endcase 
 	end
@@ -177,25 +177,25 @@ endmodule
 module RegSelect(
 	input [2:0]SEL,
 	output reg [3:0]RAMSEL,
-	input [5:0]rstatus			// 0=af-af', 1=exx, 2=hl-de, 3=hl'-de',4=hl-ixy, 5=ix-iy
+	input [5:0]rstatus // 0=af-af', 1=exx, 2=hl-de, 3=hl'-de',4=hl-ixy, 5=ix-iy
 	);
 	
 	always @* begin
 		RAMSEL = 4'bxxxx;
 		case(SEL)
-			0: RAMSEL = {rstatus[1], 3'b000};	// BC
-			1:  //DE
-				if(rstatus[{1'b1, rstatus[1]}]) RAMSEL = {rstatus[1], 3'b010};		//	HL
-				else RAMSEL = {rstatus[1], 3'b001};				// DE
-			2:	// HL
+			0: RAMSEL = {rstatus[1], 3'b000}; // BC
+			1: //DE
+				if(rstatus[{1'b1, rstatus[1]}]) RAMSEL = {rstatus[1], 3'b010}; // HL
+				else RAMSEL = {rstatus[1], 3'b001}; // DE
+			2: // HL
 				case({rstatus[5:4], rstatus[{1'b1, rstatus[1]}]})
-					0,4: 	RAMSEL = {rstatus[1], 3'b010}; 		// HL
-					1,5: 	RAMSEL = {rstatus[1], 3'b001};		// DE
-					2,3:	RAMSEL = 4'b0101;  	//	IX
-					6,7:	RAMSEL = 4'b0110;		// IY
+					0,4: RAMSEL = {rstatus[1], 3'b010}; // HL
+					1,5: RAMSEL = {rstatus[1], 3'b001}; // DE
+					2,3: RAMSEL = 4'b0101; // IX
+					6,7: RAMSEL = 4'b0110; // IY
 				endcase
 			3: RAMSEL = {rstatus[0], 3'b011}; // A-TL
-			4:	RAMSEL = 4; // I-R
+			4: RAMSEL = 4; // I-R
 			5: RAMSEL = 12;	// tmp SP
 			6: RAMSEL = 13;	// zero
 			7: RAMSEL = 7;	// temp reg for BIT/SET/RES

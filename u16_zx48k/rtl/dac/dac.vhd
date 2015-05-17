@@ -35,11 +35,11 @@ use ieee.numeric_std.all;
 
 architecture rtl of dac is
 
-  signal DACout_q      : std_logic;
+  signal DACout_q : std_logic;
   signal DeltaAdder_s,
          SigmaAdder_s,
          SigmaLatch_q,
-         DeltaB_s      : unsigned(msbi_g+2 downto 0);
+         DeltaB_s : unsigned(msbi_g+2 downto 0);
 
 begin
 
