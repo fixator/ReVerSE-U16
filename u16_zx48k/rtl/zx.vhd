@@ -148,8 +148,6 @@ port map (
 	address_b	=> "010" & vga_addr,
 	clock_a		=> clk_bus,
 	clock_b		=> clk_vga,
-	enable_a	=> '1',
-	enable_b	=> '1',
 	data_a	 	=> cpu_do,
 	data_b	 	=> (others => '0'),
 	wren_a	 	=> ram_wr,

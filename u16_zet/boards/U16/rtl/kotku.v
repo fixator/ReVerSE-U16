@@ -50,13 +50,13 @@ module kotku (
 	output        sd_mosi_,
 	output        sd_ss_,
 	
-	// VGA signals
-	output [ 1:0] tft_lcd_r_,
-	output [ 1:0] tft_lcd_g_,
-	output [ 1:0] tft_lcd_b_,
-	output        tft_lcd_hsync_,
-	output        tft_lcd_vsync_,
-
+	// HDMI
+	output        hdmi_d0,
+	output        hdmi_d1,
+	output        hdmi_d1n,
+	output        hdmi_d2,
+	output        hdmi_clk,
+	
 	// To expansion header
 	output        speaker_l_,   // Speaker output, left channel
 	output        speaker_r_,   // Speaker output, right channel
@@ -352,7 +352,10 @@ module kotku (
   wire [3:0]  red;
   wire [3:0]  green;
   wire [3:0]  blue;
-  
+  wire        tft_lcd_hsync_;
+  wire        tft_lcd_vsync_;
+  wire        tft_lcd_blank_;
+  wire        clk_dvi;
   wire        chassis_spk;
   
 `ifndef SIMULATION
@@ -383,7 +386,6 @@ always @(posedge intv[0]) begin
  DEBUG <= !DEBUG;		
 end 
 
-//vga_clk =====================================
 assign clk = clk_d; //CLK_12_5_d;
 
 
@@ -394,6 +396,8 @@ assign clk = clk_d; //CLK_12_5_d;
     .inclk0 (clk_50_),
     .c0     (sdram_clk),	// 100 Mhz
     .c1     (clk_d),		// 12.5 Mhz
+    .c2     (vga_clk),		// 25 MHz
+    .c3     (clk_dvi),		// 125 MHz    
     .locked (lock)
   );
 
@@ -725,6 +729,7 @@ assign clk = clk_d; //CLK_12_5_d;
     .vga_blue_o  (blue),
     .horiz_sync  (tft_lcd_hsync_),
     .vert_sync   (tft_lcd_vsync_),
+    .vga_blank   (tft_lcd_blank_),
 
     // VGA CPU FML master interface
     .vga_cpu_fml_adr(vga_cpu_fml_adr),
@@ -744,7 +749,7 @@ assign clk = clk_d; //CLK_12_5_d;
     .vga_lcd_fml_do(vga_lcd_fml_do),
     .vga_lcd_fml_di(vga_lcd_fml_di),
 
-    .vga_clk(vga_clk)
+    .vga_clk()
   ); 
 
   // RS232 COM1 Port
@@ -1167,9 +1172,23 @@ assign clk = clk_d; //CLK_12_5_d;
                         sw_dat_o);
 
   assign sdram_clk_ = sdram_clk;
-  
-  assign tft_lcd_r_ = (red[3:2]);
-  assign tft_lcd_g_ = (green[3:2]);
-  assign tft_lcd_b_ = (blue[3:2]);
 
+  // HDMI
+  hdmi hdmi (
+    .CLK_DVI_I (clk_dvi),
+    .CLK_PIXEL_I (clk_vga),
+    .R_I ({red, red}),
+    .G_I ({green, green}),
+    .B_I ({blue, blue}),
+    .BLANK_I (tft_lcd_blank_),
+    .HSYNC_I (tft_lcd_hsync_),
+    .VSYNC_I (tft_lcd_vsync_),
+    .TMDS_D0_O (hdmi_d0),
+    .TMDS_D1_O (hdmi_d1),
+    .TMDS_D2_O (hdmi_d2),
+    .TMDS_CLK_O (hdmi_clk)
+  );
+
+  assign hdmi_d1n = 1'b0;
+  
 endmodule

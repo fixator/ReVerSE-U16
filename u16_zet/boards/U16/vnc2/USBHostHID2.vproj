@@ -1,7 +1,7 @@
 <Project>
 	<Version>1.2</Version>
 	<ProjectName>USBHostHID2</ProjectName>
-	<ProjectLocation>C:\Users\mvv\Desktop\_STEP 10 -2 threads</ProjectLocation>
+	<ProjectLocation>C:\Users\mvv\Desktop\zet\boards\U16\vnc2</ProjectLocation>
 	<ProjectSolution>USBHostHID2</ProjectSolution>
 	<ProjectVersion>2.0.2</ProjectVersion>
 	<OutputDir></OutputDir>

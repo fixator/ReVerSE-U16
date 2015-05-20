@@ -62,6 +62,7 @@ module vga_pal_dac_fml (
     output reg [3:0] vga_blue_o,
     output reg       horiz_sync,
     output           vert_sync,
+    output           vga_blank,
 
     // retrace signals
     output v_retrace,
@@ -123,7 +124,7 @@ module vga_pal_dac_fml (
   // Continuous assignments
   assign video_on_v   = video_on_v_pal_dac_i;
   assign vert_sync    = vert_sync_pal_dac_i;
-
+  assign vga_blank    = !video_on;
   assign video_on     = video_on_h && video_on_v;
 
   assign attr  = character_pal_dac_i[3:0];

@@ -42,6 +42,7 @@ module vga_fml #(
     output [ 3:0] vga_blue_o,
     output        horiz_sync,
     output        vert_sync,
+    output        vga_blank,
 
     // VGA CPU FML master interface
     output [fml_depth-1:0] vga_cpu_fml_adr,
@@ -248,6 +249,7 @@ module vga_fml #(
     .vga_blue_o  (vga_blue_o),
     .horiz_sync  (horiz_sync),
     .vert_sync   (w_vert_sync),
+    .vga_blank   (vga_blank),
     
     .start_addr (start_addr),
 
