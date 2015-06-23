@@ -1,5 +1,5 @@
--------------------------------------------------------------------[07.06.2015]
--- U16-ZX128K Version 1.0
+-------------------------------------------------------------------[22.06.2015]
+-- U16-ZX128K Version 2.0
 -- DEVBOARD ReVerSE-U16
 -------------------------------------------------------------------------------
 -- Engineer: 	MVV
@@ -123,6 +123,7 @@ signal vga_vsync	: std_logic;
 signal vga_blank	: std_logic;
 signal vga_rgb		: std_logic_vector(5 downto 0);
 signal vga_int		: std_logic;
+signal vga_hcnt		: std_logic_vector(9 downto 0);
 signal vram_wr		: std_logic;
 signal vram_scr		: std_logic;
 -- Clock
@@ -159,6 +160,8 @@ signal ssg_ch_b		: std_logic_vector(7 downto 0);
 signal ssg_ch_c		: std_logic_vector(7 downto 0);
 signal dac_left		: std_logic_vector(8 downto 0);
 signal dac_right	: std_logic_vector(8 downto 0);
+
+signal ecc		: std_logic_vector(7 downto 0);
 
 begin
 
@@ -234,6 +237,7 @@ port map (
 	ADDR_O		=> vga_addr,
 	BLANK_O		=> vga_blank,
 	RGB_O		=> vga_rgb,	-- RRGGBB
+	HCNT_O		=> vga_hcnt,
 	HSYNC_O		=> vga_hsync,
 	VSYNC_O		=> vga_vsync);
 	
@@ -276,6 +280,56 @@ port map(
 	BLANK_I		=> vga_blank,
 	HSYNC_I		=> vga_hsync,
 	VSYNC_I		=> vga_vsync,
+	HB_I		=>
+-- Packets header 2:
+			  X"4A" & X"00" & X"00" & X"01" &	-- ECC(31..24), HB2(23..16), HB1(15..8), HB0(7..0)
+-- Packets header 1:			   
+-- 00000000 HB0 Packet Type = 0x02
+-- 00000000 HB1 0 0 0 layout sample_present.sp3 sample_present.sp2 sample_present.sp1 sample_present.sp0
+-- 00000000 HB2 B.3 B.2 B.1 B.0 sample_flat.sp3 sample_flat.sp2 sample_flat.sp1 sample_flat.sp0
+-- 00000000 ECC
+			   X"D6" & X"10" & X"01" & X"02" &	-- ECC(31..24), HB2(23..16), HB1(15..8), HB0(7..0)
+-- Packets header 0:
+-- 00000000 HB0 Packet Type = 0x84
+-- 00000000 HB1 Version Number = 0x01
+-- 00000000 HB2 Length = 0x0A
+-- 00000000 ECC (0x4A)
+			   X"4A" & X"0A" & X"01" & X"84",	-- ECC(31..24), HB2(23..16), HB1(15..8), HB0(7..0)
+	PB_I		=>
+-- Packets 2:
+			   X"00" & X"00" & X"00" & X"00" & X"00" & X"00" & X"00" & X"00" &	-- ECC(255..248),PB27(247..240),PB26(239..232),PB25(231..224),PB24(223..216),PB23(215..208),PB22(207..200),PB21(199..192)
+			   X"00" & X"00" & X"00" & X"00" & X"00" & X"00" & X"00" & X"00" &	-- ECC(191..184),PB20(183..176),PB19(175..168),PB18(167..160),PB17(159..152),PB16(151..144),PB15(143..136),PB14(135..128)
+			   X"8A" & X"00" & X"18" & X"00" & X"18" & X"44" & X"02" & X"00" &	-- ECC(127..120),PB13(119..112),PB12(111..104),PB11(103..96),PB10(95..88),PB9(87..80),PB8(79..72),PB7(71..64)
+			   X"8A" & X"00" & X"18" & X"00" & X"18" & X"44" & X"02" & X"00" &	-- ECC(63..56),PB6(55..48),PB5(47..40),PB4(39..32),PB3(31..24),PB2(23..16),PB1(15..8),PB0(7..0)
+			   
+-- Packets 1:
+--               | 7      | 6    | 5    | 4    | 3    | 2   | 1   | 0    |
+-- 00000000 SB0  | L.11   |      |      |      |      |     |     | L.4  |
+-- 00000000 SB1  | L.19   |      |      |      |      |     |     | L.12 |
+-- 00000000 SB2  | L.27   |      |      |      |      |     |     | L.20 |
+-- 00000000 SB3  | R.11   |      |      |      |      |     |     | R.4  |
+-- 00000000 SB4  | R.19   |      |      |      |      |     |     | R.12 |
+-- 00000000 SB5  | R.27   |      |      |      |      |     |     | R.20 |
+-- 00000000 SB6  | Pr     | Cr   | Ur   | Vr   | Pl   | Cl  | Ul  | Vl   |
+			   X"00" & X"00" & X"00" & X"00" & X"00" & X"00" & X"00" & X"00" &	-- ECC(255..248),PB27(247..240),PB26(239..232),PB25(231..224),PB24(223..216),PB23(215..208),PB22(207..200),PB21(199..192)
+			   X"00" & X"00" & X"00" & X"00" & X"00" & X"00" & X"00" & X"00" &	-- ECC(191..184),PB20(183..176),PB19(175..168),PB18(167..160),PB17(159..152),PB16(151..144),PB15(143..136),PB14(135..128)
+			   X"00" & X"00" & X"00" & X"00" & X"00" & X"00" & X"00" & X"00" &	-- ECC(127..120),PB13(119..112),PB12(111..104),PB11(103..96),PB10(95..88),PB9(87..80),PB8(79..72),PB7(71..64)
+			   ecc   & X"4B" & X"00" & X"00" & X"00" & X"00" & port_xxfe_reg(4) & "0000000" & X"00" &	-- ECC(63..56),PB6(55..48),PB5(47..40),PB4(39..32),PB3(31..24),PB2(23..16),PB1(15..8),PB0(7..0)
+-- Packets 0:
+--               | 7      | 6    | 5    | 4    | 3    | 2   | 1   | 0   |
+-- 00000000 PB0  | Checksum                                             |	00 - (84+01+0A + 81) = F0
+-- 00000000 PB1  | CT3    | CT2  | CT1  | CT0  | Rsvd | CC2 | CC1 | CC0 |
+-- 00000000 PB2  | Reserved (0)         | SF2  | SF1  | SF0 | SS1 | SS0 |
+-- 00000000 PB3  | Format depends on coding type (i.e. CT0CT3)          |	Data Byte 3 shall always be set to a value of 0.
+-- 00000000 PB4  | CA7    | CA6  | CA5  | CA4  | CA3  | CA2 | CA1 | CA0 |
+-- 00000000 PB5  | DM_INH | LSV3 | LSV2 | LSV1 | LSV0 | Reserved (0)    |
+-- 00000000 PB6- | Reserved (0)                                         |
+-- 00000000 PB27 | Reserved (0)                                         |
+			   X"00" & X"00" & X"00" & X"00" & X"00" & X"00" & X"00" & X"00" &	-- ECC(255..248),PB27(247..240),PB26(239..232),PB25(231..224),PB24(223..216),PB23(215..208),PB22(207..200),PB21(199..192)
+			   X"00" & X"00" & X"00" & X"00" & X"00" & X"00" & X"00" & X"00" &	-- ECC(191..184),PB20(183..176),PB19(175..168),PB18(167..160),PB17(159..152),PB16(151..144),PB15(143..136),PB14(135..128)
+			   X"00" & X"00" & X"00" & X"00" & X"00" & X"00" & X"00" & X"00" &	-- ECC(127..120),PB13(119..112),PB12(111..104),PB11(103..96),PB10(95..88),PB9(87..80),PB8(79..72),PB7(71..64)
+			   X"7D" & X"00" & X"00" & X"00" & X"00" & X"00" & X"01" & X"70",	-- ECC(63..56),PB6(55..48),PB5(47..40),PB4(39..32),PB3(31..24),PB2(23..16),PB1(15..8),PB0(7..0)
+	HCNT_I		=> vga_hcnt,
 	TMDS_D0_O	=> HDMI_D0,
 	TMDS_D1_O	=> HDMI_D1,
 	TMDS_D2_O	=> HDMI_D2,
@@ -454,5 +508,7 @@ ssg_bdir <= '1' when (cpu_iorq = '0' and cpu_addr(15) = '1' and cpu_addr(1) = '0
 
 dac_left  <= ('0' & ssg_ch_a) + ('0' & ssg_ch_b) + ('0' & port_xxfe_reg(4) & "000000");
 dac_right <= ('0' & ssg_ch_c) + ('0' & ssg_ch_b) + ('0' & port_xxfe_reg(4) & "000000");
+
+ecc <= X"00" when port_xxfe_reg(4) = '0' else X"32";
 
 end rtl;

@@ -1,6 +1,4 @@
 ZX-Spectrum 128K
-
-07.06.2015	Initial release
 		CPU: T80@3.5MHz
 		RAM: M9K 56K (32K ROM + 8K ROM + 16K RAM)
 		SDRAM: 640K (128K + 512K)
@@ -9,3 +7,6 @@ ZX-Spectrum 128K
 		Sound: Stereo (Delta-sigma) AY3-8910 + Beeper
 		Keyboard: USB HID Keyboard (F4=CPU Reset, F5=NMI, ScrollLock=Hard Reset)
 		DivMMC: 512K (Press Space+F5+F4 to initial, F5=Go to ESXDOS)
+
+22.06.2015	Initial Audio Packets
+07.06.2015	Initial release

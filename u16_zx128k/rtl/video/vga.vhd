@@ -1,4 +1,4 @@
--------------------------------------------------------------------[16.05.2015]
+-------------------------------------------------------------------[13.06.2015]
 -- VGA
 -------------------------------------------------------------------------------
 -- Engineer: 	MVV
@@ -20,6 +20,7 @@ port (
 	ADDR_O		: out std_logic_vector(12 downto 0);
 	BLANK_O		: out std_logic;
 	RGB_O		: out std_logic_vector(5 downto 0);	-- RRGGBB
+	HCNT_O		: out std_logic_vector(9 downto 0);
 	HSYNC_O		: out std_logic;
 	VSYNC_O		: out std_logic);
 end entity;
@@ -197,5 +198,6 @@ RGB_O 		<= vga_rgb;
 HSYNC_O 	<= h_sync;
 VSYNC_O 	<= v_sync;
 BLANK_O		<= blank_sig;
+HCNT_O		<= h_count_reg;
 
 end architecture;
