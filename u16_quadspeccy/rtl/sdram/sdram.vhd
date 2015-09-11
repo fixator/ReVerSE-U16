@@ -1,4 +1,4 @@
--------------------------------------------------------------------[17.03.2015]
+-------------------------------------------------------------------[11.09.2015]
 -- SDRAM Controller SDRAM 4 Meg x 16 x 4 banks
 -------------------------------------------------------------------------------
 -- Engineer: 	MVV
@@ -16,50 +16,50 @@ use IEEE.numeric_std.all;
 
 entity sdram is
 	port(
-		RST_I		: in  std_logic;
-		CLK_I		: in  std_logic;
-		ENA_O		: out std_logic;
+		I_RESET		: in  std_logic;
+		I_CLK		: in  std_logic;
+		O_ENA		: out std_logic;
 		-- Channal 0
-		CH0_ADR_I	: in  std_logic_vector(24 downto 0);
-		CH0_DAT_I	: in  std_logic_vector( 7 downto 0);
-		CH0_DAT_O	: out std_logic_vector( 7 downto 0);
-		CH0_WR_I	: in  std_logic;
-		CH0_RD_I	: in  std_logic;
-		CH0_RFSH_I	: in  std_logic;
-		CH0_DMA_ADR_I	: in  std_logic_vector(24 downto 0);
-		CH0_DMA_RD_I	: in  std_logic;
-		CH0_DMA_ACK_O	: out std_logic;
+		I_CH0_ADDR	: in  std_logic_vector(24 downto 0);
+		I_CH0_DATA	: in  std_logic_vector( 7 downto 0);
+		O_CH0_DATA	: out std_logic_vector( 7 downto 0);
+		I_CH0_WR	: in  std_logic;
+		I_CH0_RD	: in  std_logic;
+		I_CH0_RFSH	: in  std_logic;
+		I_CH0_DMA_ADDR	: in  std_logic_vector(24 downto 0);
+		I_CH0_DMA_RD	: in  std_logic;
+		O_CH0_DMA_ACK	: out std_logic;
 		-- Channal 1
-		CH1_ADR_I	: in  std_logic_vector(24 downto 0);
-		CH1_DAT_I	: in  std_logic_vector( 7 downto 0);
-		CH1_DAT_O	: out std_logic_vector( 7 downto 0);
-		CH1_WR_I	: in  std_logic;
-		CH1_RD_I	: in  std_logic;
-		CH1_RFSH_I	: in  std_logic;
+		I_CH1_ADDR	: in  std_logic_vector(24 downto 0);
+		I_CH1_DATA	: in  std_logic_vector( 7 downto 0);
+		O_CH1_DATA	: out std_logic_vector( 7 downto 0);
+		I_CH1_WR	: in  std_logic;
+		I_CH1_RD	: in  std_logic;
+		I_CH1_RFSH	: in  std_logic;
 		-- Channal 2
-		CH2_ADR_I	: in  std_logic_vector(24 downto 0);
-		CH2_DAT_I	: in  std_logic_vector( 7 downto 0);
-		CH2_DAT_O	: out std_logic_vector( 7 downto 0);
-		CH2_WR_I	: in  std_logic;
-		CH2_RD_I	: in  std_logic;
-		CH2_RFSH_I	: in  std_logic;
+		I_CH2_ADDR	: in  std_logic_vector(24 downto 0);
+		I_CH2_DATA	: in  std_logic_vector( 7 downto 0);
+		O_CH2_DATA	: out std_logic_vector( 7 downto 0);
+		I_CH2_WR	: in  std_logic;
+		I_CH2_RD	: in  std_logic;
+		I_CH2_RFSH	: in  std_logic;
 		-- Channal 3
-		CH3_ADR_I	: in  std_logic_vector(24 downto 0);
-		CH3_DAT_I	: in  std_logic_vector( 7 downto 0);
-		CH3_DAT_O	: out std_logic_vector( 7 downto 0);
-		CH3_WR_I	: in  std_logic;
-		CH3_RD_I	: in  std_logic;
-		CH3_RFSH_I	: in  std_logic;
+		I_CH3_ADDR	: in  std_logic_vector(24 downto 0);
+		I_CH3_DATA	: in  std_logic_vector( 7 downto 0);
+		O_CH3_DATA	: out std_logic_vector( 7 downto 0);
+		I_CH3_WR	: in  std_logic;
+		I_CH3_RD	: in  std_logic;
+		I_CH3_RFSH	: in  std_logic;
 		-- SDRAM Pin
-		CK		: out std_logic;
-		RAS_n		: out std_logic;
-		CAS_n		: out std_logic;
-		WE_n		: out std_logic;
-		DQML		: out std_logic;
-		DQMH		: out std_logic;
-		BA		: out std_logic_vector( 1 downto 0);
-		MA		: out std_logic_vector(12 downto 0);
-		DQ		: inout std_logic_vector(15 downto 0) );
+		O_CLK		: out std_logic;
+		O_RAS_N		: out std_logic;
+		O_CAS_N		: out std_logic;
+		O_WE_N		: out std_logic;
+		O_DQML		: out std_logic;
+		O_DQMH		: out std_logic;
+		O_BA		: out std_logic_vector( 1 downto 0);
+		O_MA		: out std_logic_vector(12 downto 0);
+		IO_DQ		: inout std_logic_vector(15 downto 0) );
 end sdram;
 
 architecture rtl of sdram is
@@ -98,9 +98,9 @@ architecture rtl of sdram is
 -- pr xx xx re xx xx xx xx xx re xx xx xx xx xx ms xx xx xx xx xx  xx/ac/re  xx rd xx xx xx  xx wr xx xx xx  xx xx xx xx xx
 
 begin
-	process (RST_I, CLK_I)
+	process (I_RESET, I_CLK)
 	begin
-		if (RST_I = '1') then
+		if (I_RESET = '1') then
 			sdr_cmd  <= (others => '1');
 			sdr_a    <= (others => '1');
 			sdr_ba   <= (others => '1');
@@ -110,9 +110,9 @@ begin
 			sdr_dqml <= '1';
 			sdr_dqmh <= '1';
 
-		elsif (CLK_I'event and CLK_I = '0') then
-			ENA_O <= '0';
-			if (CH0_DMA_RD_I = '0') then ch0_dma_req <= '0'; end if;
+		elsif (I_CLK'event and I_CLK = '0') then
+			O_ENA <= '0';
+			if (I_CH0_DMA_RD = '0') then ch0_dma_req <= '0'; end if;
 
 			case state is
 				-- Init
@@ -139,28 +139,28 @@ begin
 					case channal is
 						-- Channal 0
 						when "00" =>
-							if (CH0_RD_I = '1') then
+							if (I_CH0_RD = '1') then
 								idle1   <= '0';
-								address <= CH0_ADR_I;
+								address <= I_CH0_ADDR;
 								sdr_cmd <= SdrCmd_ac;		-- ACTIVE
-								sdr_ba  <= CH0_ADR_I(24 downto 23);
-								sdr_a   <= CH0_ADR_I(22 downto 10);
+								sdr_ba  <= I_CH0_ADDR(24 downto 23);
+								sdr_a   <= I_CH0_ADDR(22 downto 10);
 								state   <= "10110";		-- s16 Read
-							elsif (CH0_WR_I = '1') then
+							elsif (I_CH0_WR = '1') then
 								idle1   <= '0';
-								address <= CH0_ADR_I;
-								data    <= CH0_DAT_I;
+								address <= I_CH0_ADDR;
+								data    <= I_CH0_DATA;
 								sdr_cmd <= SdrCmd_ac;		-- ACTIVE
-								sdr_ba  <= CH0_ADR_I(24 downto 23);
-								sdr_a   <= CH0_ADR_I(22 downto 10);
+								sdr_ba  <= I_CH0_ADDR(24 downto 23);
+								sdr_a   <= I_CH0_ADDR(22 downto 10);
 								state   <= "11000";		-- s18 Write
-							elsif (CH0_DMA_RD_I = '1') then
+							elsif (I_CH0_DMA_RD = '1') then
 								ch0_dma_req <= '1';
 								idle1   <= '0';
-								address <= CH0_DMA_ADR_I;
+								address <= I_CH0_DMA_ADDR;
 								sdr_cmd <= SdrCmd_ac;		-- ACTIVE
-								sdr_ba  <= CH0_DMA_ADR_I(24 downto 23);
-								sdr_a   <= CH0_DMA_ADR_I(22 downto 10);
+								sdr_ba  <= I_CH0_DMA_ADDR(24 downto 23);
+								sdr_a   <= I_CH0_DMA_ADDR(22 downto 10);
 								state   <= "10110";		-- s16 Read
 							else
 								sdr_cmd <= SdrCmd_re;		-- REFRESH
@@ -168,20 +168,20 @@ begin
 							end if;
 						-- Channal 1
 						when "01" =>
-							if (CH1_RD_I = '1') then
+							if (I_CH1_RD = '1') then
 								idle1   <= '0';
-								address <= CH1_ADR_I;
+								address <= I_CH1_ADDR;
 								sdr_cmd <= SdrCmd_ac;		-- ACTIVE
-								sdr_ba  <= CH1_ADR_I(24 downto 23);
-								sdr_a   <= CH1_ADR_I(22 downto 10);
+								sdr_ba  <= I_CH1_ADDR(24 downto 23);
+								sdr_a   <= I_CH1_ADDR(22 downto 10);
 								state   <= "10110";		-- s16 Read
-							elsif (CH1_WR_I = '1') then
+							elsif (I_CH1_WR = '1') then
 								idle1   <= '0';
-								address <= CH1_ADR_I;
-								data    <= CH1_DAT_I;
+								address <= I_CH1_ADDR;
+								data    <= I_CH1_DATA;
 								sdr_cmd <= SdrCmd_ac;		-- ACTIVE
-								sdr_ba  <= CH1_ADR_I(24 downto 23);
-								sdr_a   <= CH1_ADR_I(22 downto 10);
+								sdr_ba  <= I_CH1_ADDR(24 downto 23);
+								sdr_a   <= I_CH1_ADDR(22 downto 10);
 								state   <= "11000";		-- s18 Write
 							else
 								sdr_cmd <= SdrCmd_re;		-- REFRESH
@@ -189,20 +189,20 @@ begin
 							end if;
 						-- Channal 2
 						when "10" =>
-							if (CH2_RD_I = '1') then
+							if (I_CH2_RD = '1') then
 								idle1   <= '0';
-								address <= CH2_ADR_I;
+								address <= I_CH2_ADDR;
 								sdr_cmd <= SdrCmd_ac;		-- ACTIVE
-								sdr_ba  <= CH2_ADR_I(24 downto 23);
-								sdr_a   <= CH2_ADR_I(22 downto 10);
+								sdr_ba  <= I_CH2_ADDR(24 downto 23);
+								sdr_a   <= I_CH2_ADDR(22 downto 10);
 								state   <= "10110";		-- s16 Read
-							elsif (CH2_WR_I = '1') then
+							elsif (I_CH2_WR = '1') then
 								idle1   <= '0';
-								address <= CH2_ADR_I;
-								data    <= CH2_DAT_I;
+								address <= I_CH2_ADDR;
+								data    <= I_CH2_DATA;
 								sdr_cmd <= SdrCmd_ac;		-- ACTIVE
-								sdr_ba  <= CH2_ADR_I(24 downto 23);
-								sdr_a   <= CH2_ADR_I(22 downto 10);
+								sdr_ba  <= I_CH2_ADDR(24 downto 23);
+								sdr_a   <= I_CH2_ADDR(22 downto 10);
 								state   <= "11000";		-- s18 Write
 							else
 								sdr_cmd <= SdrCmd_re;		-- REFRESH
@@ -210,20 +210,20 @@ begin
 							end if;
 						-- Channal 3
 						when "11" =>
-							if (CH3_RD_I = '1') then
+							if (I_CH3_RD = '1') then
 								idle1   <= '0';
-								address <= CH3_ADR_I;
+								address <= I_CH3_ADDR;
 								sdr_cmd <= SdrCmd_ac;		-- ACTIVE
-								sdr_ba  <= CH3_ADR_I(24 downto 23);
-								sdr_a   <= CH3_ADR_I(22 downto 10);
+								sdr_ba  <= I_CH3_ADDR(24 downto 23);
+								sdr_a   <= I_CH3_ADDR(22 downto 10);
 								state   <= "10110";		-- s16 Read
-							elsif (CH3_WR_I = '1') then
+							elsif (I_CH3_WR = '1') then
 								idle1   <= '0';
-								address <= CH3_ADR_I;
-								data    <= CH3_DAT_I;
+								address <= I_CH3_ADDR;
+								data    <= I_CH3_DATA;
 								sdr_cmd <= SdrCmd_ac;		-- ACTIVE
-								sdr_ba  <= CH3_ADR_I(24 downto 23);
-								sdr_a   <= CH3_ADR_I(22 downto 10);
+								sdr_ba  <= I_CH3_ADDR(24 downto 23);
+								sdr_a   <= I_CH3_ADDR(22 downto 10);
 								state   <= "11000";		-- s18 Write
 							else
 								sdr_cmd <= SdrCmd_re;		-- REFRESH
@@ -233,7 +233,7 @@ begin
 					end case;
 				when "10100" =>					-- s14
 					if (channal = "11") then
-						ENA_O <= '1';
+						O_ENA <= '1';
 					end if;	  
 					sdr_dq  <= (others => 'Z');
 					sdr_cmd <= SdrCmd_xx;			-- NOP
@@ -266,52 +266,52 @@ begin
 		end if;
 	end process;
 	
-	process (CLK_I, state, DQ, ch0_data, ch1_data, ch2_data, ch3_data, idle1, address, ch0_dma_ack, ch0_dma_req)
+	process (I_CLK, state, IO_DQ, ch0_data, ch1_data, ch2_data, ch3_data, idle1, address, ch0_dma_ack, ch0_dma_req)
 	begin
-		if (CLK_I'event and CLK_I = '1') then
-			if (CH0_DMA_RD_I = '0') then ch0_dma_ack <= '0'; end if;
+		if (I_CLK'event and I_CLK = '1') then
+			if (I_CH0_DMA_RD = '0') then ch0_dma_ack <= '0'; end if;
 			if (state = "10101" and idle1 = '0') then		-- s15
 				if (address(0) = '0') then
 					case channal is
-						when "00" => ch3_data <= DQ(7 downto 0);
-						when "01" => ch0_data <= DQ(7 downto 0); if (ch0_dma_req = '1') then ch0_dma_ack <= '1'; end if;
-						when "10" => ch1_data <= DQ(7 downto 0);
---						when "11" => ch2_data <= DQ(7 downto 0);
+						when "00" => ch3_data <= IO_DQ(7 downto 0);
+						when "01" => ch0_data <= IO_DQ(7 downto 0); if (ch0_dma_req = '1') then ch0_dma_ack <= '1'; end if;
+						when "10" => ch1_data <= IO_DQ(7 downto 0);
+--						when "11" => ch2_data <= IO_DQ(7 downto 0);
 						when others => null;
 					end case;
 				else
 					case channal is
-						when "00" => ch3_data <= DQ(15 downto 8);
-						when "01" => ch0_data <= DQ(15 downto 8); if (ch0_dma_req = '1') then ch0_dma_ack <= '1'; end if;
-						when "10" => ch1_data <= DQ(15 downto 8);
---						when "11" => ch2_data <= DQ(15 downto 8);
+						when "00" => ch3_data <= IO_DQ(15 downto 8);
+						when "01" => ch0_data <= IO_DQ(15 downto 8); if (ch0_dma_req = '1') then ch0_dma_ack <= '1'; end if;
+						when "10" => ch1_data <= IO_DQ(15 downto 8);
+--						when "11" => ch2_data <= IO_DQ(15 downto 8);
 						when others => null;
 					end case;
 				end if;
 			end if;
 		end if;
 		if (address(0) = '0') then
-			ch2_data <= DQ(7 downto 0);
+			ch2_data <= IO_DQ(7 downto 0);
 		else
-			ch2_data <= DQ(15 downto 8);
+			ch2_data <= IO_DQ(15 downto 8);
 		end if;
 	end process;
 	
-	CH0_DAT_O <= ch0_data;
-	CH1_DAT_O <= ch1_data;
-	CH2_DAT_O <= ch2_data;
-	CH3_DAT_O <= ch3_data;
+	O_CH0_DATA <= ch0_data;
+	O_CH1_DATA <= ch1_data;
+	O_CH2_DATA <= ch2_data;
+	O_CH3_DATA <= ch3_data;
 	
-	CH0_DMA_ACK_O <= ch0_dma_ack;
+	O_CH0_DMA_ACK <= ch0_dma_ack;
 	
-	CK 	<= CLK_I;
-	RAS_n 	<= sdr_cmd(2);
-	CAS_n 	<= sdr_cmd(1);
-	WE_n 	<= sdr_cmd(0);
-	DQML 	<= sdr_dqml;
-	DQMH 	<= sdr_dqmh;
-	BA	<= sdr_ba;
-	MA 	<= sdr_a;
-	DQ 	<= sdr_dq;
+	O_CLK 	<= I_CLK;
+	O_RAS_N 	<= sdr_cmd(2);
+	O_CAS_N 	<= sdr_cmd(1);
+	O_WE_N 	<= sdr_cmd(0);
+	O_DQML 	<= sdr_dqml;
+	O_DQMH 	<= sdr_dqmh;
+	O_BA	<= sdr_ba;
+	O_MA 	<= sdr_a;
+	IO_DQ 	<= sdr_dq;
 
 end rtl;

@@ -1,4 +1,4 @@
--------------------------------------------------------------------[17.03.2015]
+-------------------------------------------------------------------[11.09.2015]
 -- DMA Sound
 -------------------------------------------------------------------------------
 -- Engineer: 	MVV
@@ -12,25 +12,25 @@ use IEEE.std_logic_unsigned.all;
 
 entity dmasound is
 port ( 
-	RST_I			: in  std_logic;
-	CLK_I			: in  std_logic;
-	ENA_I			: in  std_logic;
-	ADR_I			: in  std_logic_vector(15 downto 0);
-	DAT_I			: in  std_logic_vector( 7 downto 0);
-	DAT_O			: out std_logic_vector( 7 downto 0);
-	WRn_I			: in  std_logic;
-	RDn_I			: in  std_logic;
-	IORQn_I			: in  std_logic;
-	INTA_I			: in  std_logic;
-	INT_O			: out std_logic;
+	I_RST			: in  std_logic;
+	I_CLK			: in  std_logic;
+	I_ENA			: in  std_logic;
+	I_ADR			: in  std_logic_vector(15 downto 0);
+	I_DAT			: in  std_logic_vector( 7 downto 0);
+	O_DAT			: out std_logic_vector( 7 downto 0);
+	I_WR_N			: in  std_logic;
+	I_RD_N			: in  std_logic;
+	I_IORQ_N		: in  std_logic;
+	I_INTA			: in  std_logic;
+	O_INT			: out std_logic;
 	-- Sound
-	LEFT_O			: out std_logic_vector(16 downto 0);
-	RIGHT_O			: out std_logic_vector(16 downto 0);
+	O_LEFT			: out std_logic_vector(16 downto 0);
+	O_RIGHT			: out std_logic_vector(16 downto 0);
 	-- Memory
-	MEM_ADR_O		: out std_logic_vector(23 downto 0);
-	MEM_DAT_I		: in  std_logic_vector( 7 downto 0);
-	MEM_RD_O		: out std_logic;
-	MEM_ACK_I		: in  std_logic);
+	O_MEM_ADR		: out std_logic_vector(23 downto 0);
+	I_MEM_DAT		: in  std_logic_vector( 7 downto 0);
+	O_MEM_RD		: out std_logic;
+	I_MEM_ACK		: in  std_logic);
 end dmasound;
  
 architecture rtl of dmasound is
@@ -148,10 +148,10 @@ architecture rtl of dmasound is
 	
 begin
 
-process (RST_I, CLK_I, IORQn_I, WRn_I, ADR_I, DAT_I, RDn_I, ch_enable, ch0_out, ch0_volume, ch1_out, ch1_volume, ch2_out, ch2_volume, ch3_out, ch3_volume, ch4_out, ch4_volume, ch5_out,
+process (I_RST, I_CLK, I_IORQ_N, I_WR_N, I_ADR, I_DAT, I_RD_N, ch_enable, ch0_out, ch0_volume, ch1_out, ch1_volume, ch2_out, ch2_volume, ch3_out, ch3_volume, ch4_out, ch4_volume, ch5_out,
 	ch5_volume, ch6_out, ch6_volume, ch7_out, ch7_volume, ch_mixing, ch0_volume_out, ch1_volume_out, ch2_volume_out, ch3_volume_out, ch4_volume_out, ch5_volume_out, ch6_volume_out, ch7_volume_out)
 begin
-	if (RST_I = '1') then
+	if (I_RST = '1') then
 		ch0_volume	<= (others => '0');
 		ch1_volume	<= (others => '0');
 		ch2_volume	<= (others => '0');
@@ -204,125 +204,125 @@ begin
 		priority	<= (others => '0');
 		temp_int	<= '0';
 	
-	elsif (CLK_I'event and CLK_I = '1') then
+	elsif (I_CLK'event and I_CLK = '1') then
 		------------------------------------------------------------------------
 		-- INT
-		if (INTA_I = '1') then temp_int <= '0'; end if;
+		if (I_INTA = '1') then temp_int <= '0'; end if;
 
 		------------------------------------------------------------------------
 		-- Channal 0
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"0050") then ch0_base_adr( 7 downto  0) <= DAT_I; ch0_current_adr( 7 downto  0) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"0150") then ch0_base_adr(15 downto  8) <= DAT_I; ch0_current_adr(15 downto  8) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"0250") then ch0_base_adr(23 downto 16) <= DAT_I; ch0_current_adr(23 downto 16) <= DAT_I; end if;
---		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"0350") then ch0_base_adr(31 downto 24) <= DAT_I; ch0_current_adr(31 downto 24) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"0450") then ch0_base_count( 7 downto  0) <= DAT_I; ch0_current_count( 7 downto  0) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"0550") then ch0_base_count(15 downto  8) <= DAT_I; ch0_current_count(15 downto  8) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"0650") then ch0_base_count(23 downto 16) <= DAT_I; ch0_current_count(23 downto 16) <= DAT_I; end if;
---		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"0750") then ch0_base_count(31 downto 24) <= DAT_I; ch0_current_count(31 downto 24) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"0850") then ch0_base_timer( 7 downto  0) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"0950") then ch0_base_timer(15 downto  8) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"0A50") then ch0_volume <= DAT_I( 5 downto  0); end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"0050") then ch0_base_adr( 7 downto  0) <= I_DAT; ch0_current_adr( 7 downto  0) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"0150") then ch0_base_adr(15 downto  8) <= I_DAT; ch0_current_adr(15 downto  8) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"0250") then ch0_base_adr(23 downto 16) <= I_DAT; ch0_current_adr(23 downto 16) <= I_DAT; end if;
+--		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"0350") then ch0_base_adr(31 downto 24) <= I_DAT; ch0_current_adr(31 downto 24) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"0450") then ch0_base_count( 7 downto  0) <= I_DAT; ch0_current_count( 7 downto  0) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"0550") then ch0_base_count(15 downto  8) <= I_DAT; ch0_current_count(15 downto  8) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"0650") then ch0_base_count(23 downto 16) <= I_DAT; ch0_current_count(23 downto 16) <= I_DAT; end if;
+--		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"0750") then ch0_base_count(31 downto 24) <= I_DAT; ch0_current_count(31 downto 24) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"0850") then ch0_base_timer( 7 downto  0) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"0950") then ch0_base_timer(15 downto  8) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"0A50") then ch0_volume <= I_DAT( 5 downto  0); end if;
 		------------------------------------------------------------------------
 		-- Channal 1
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"1050") then ch1_base_adr( 7 downto  0) <= DAT_I; ch1_current_adr( 7 downto  0) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"1150") then ch1_base_adr(15 downto  8) <= DAT_I; ch1_current_adr(15 downto  8) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"1250") then ch1_base_adr(23 downto 16) <= DAT_I; ch1_current_adr(23 downto 16) <= DAT_I; end if;
---		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"1350") then ch1_base_adr(31 downto 24) <= DAT_I; ch1_current_adr(31 downto 24) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"1450") then ch1_base_count( 7 downto  0) <= DAT_I; ch1_current_count( 7 downto  0) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"1550") then ch1_base_count(15 downto  8) <= DAT_I; ch1_current_count(15 downto  8) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"1650") then ch1_base_count(23 downto 16) <= DAT_I; ch1_current_count(23 downto 16) <= DAT_I; end if;
---		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"1750") then ch1_base_count(31 downto 24) <= DAT_I; ch1_current_count(31 downto 24) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"1850") then ch1_base_timer( 7 downto  0) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"1950") then ch1_base_timer(15 downto  8) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"1A50") then ch1_volume <= DAT_I(5 downto 0); end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"1050") then ch1_base_adr( 7 downto  0) <= I_DAT; ch1_current_adr( 7 downto  0) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"1150") then ch1_base_adr(15 downto  8) <= I_DAT; ch1_current_adr(15 downto  8) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"1250") then ch1_base_adr(23 downto 16) <= I_DAT; ch1_current_adr(23 downto 16) <= I_DAT; end if;
+--		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"1350") then ch1_base_adr(31 downto 24) <= I_DAT; ch1_current_adr(31 downto 24) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"1450") then ch1_base_count( 7 downto  0) <= I_DAT; ch1_current_count( 7 downto  0) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"1550") then ch1_base_count(15 downto  8) <= I_DAT; ch1_current_count(15 downto  8) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"1650") then ch1_base_count(23 downto 16) <= I_DAT; ch1_current_count(23 downto 16) <= I_DAT; end if;
+--		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"1750") then ch1_base_count(31 downto 24) <= I_DAT; ch1_current_count(31 downto 24) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"1850") then ch1_base_timer( 7 downto  0) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"1950") then ch1_base_timer(15 downto  8) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"1A50") then ch1_volume <= I_DAT(5 downto 0); end if;
 		------------------------------------------------------------------------
 		-- Channal 2
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"2050") then ch2_base_adr( 7 downto  0) <= DAT_I; ch2_current_adr( 7 downto  0) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"2150") then ch2_base_adr(15 downto  8) <= DAT_I; ch2_current_adr(15 downto  8) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"2250") then ch2_base_adr(23 downto 16) <= DAT_I; ch2_current_adr(23 downto 16) <= DAT_I; end if;
---		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"2350") then ch2_base_adr(31 downto 24) <= DAT_I; ch2_current_adr(31 downto 24) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"2450") then ch2_base_count( 7 downto  0) <= DAT_I; ch2_current_count( 7 downto  0) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"2550") then ch2_base_count(15 downto  8) <= DAT_I; ch2_current_count(15 downto  8) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"2650") then ch2_base_count(23 downto 16) <= DAT_I; ch2_current_count(23 downto 16) <= DAT_I; end if;
---		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"2750") then ch2_base_count(31 downto 24) <= DAT_I; ch2_current_count(31 downto 24) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"2850") then ch2_base_timer( 7 downto  0) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"2950") then ch2_base_timer(15 downto  8) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"2A50") then ch2_volume <= DAT_I(5 downto 0); end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"2050") then ch2_base_adr( 7 downto  0) <= I_DAT; ch2_current_adr( 7 downto  0) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"2150") then ch2_base_adr(15 downto  8) <= I_DAT; ch2_current_adr(15 downto  8) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"2250") then ch2_base_adr(23 downto 16) <= I_DAT; ch2_current_adr(23 downto 16) <= I_DAT; end if;
+--		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"2350") then ch2_base_adr(31 downto 24) <= I_DAT; ch2_current_adr(31 downto 24) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"2450") then ch2_base_count( 7 downto  0) <= I_DAT; ch2_current_count( 7 downto  0) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"2550") then ch2_base_count(15 downto  8) <= I_DAT; ch2_current_count(15 downto  8) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"2650") then ch2_base_count(23 downto 16) <= I_DAT; ch2_current_count(23 downto 16) <= I_DAT; end if;
+--		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"2750") then ch2_base_count(31 downto 24) <= I_DAT; ch2_current_count(31 downto 24) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"2850") then ch2_base_timer( 7 downto  0) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"2950") then ch2_base_timer(15 downto  8) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"2A50") then ch2_volume <= I_DAT(5 downto 0); end if;
 		------------------------------------------------------------------------
 		-- Channal 3
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"3050") then ch3_base_adr( 7 downto  0) <= DAT_I; ch3_current_adr( 7 downto  0) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"3150") then ch3_base_adr(15 downto  8) <= DAT_I; ch3_current_adr(15 downto  8) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"3250") then ch3_base_adr(23 downto 16) <= DAT_I; ch3_current_adr(23 downto 16) <= DAT_I; end if;
---		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"3350") then ch3_base_adr(31 downto 24) <= DAT_I; ch3_current_adr(31 downto 24) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"3450") then ch3_base_count( 7 downto  0) <= DAT_I; ch3_current_count( 7 downto  0) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"3550") then ch3_base_count(15 downto  8) <= DAT_I; ch3_current_count(15 downto  8) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"3650") then ch3_base_count(23 downto 16) <= DAT_I; ch3_current_count(23 downto 16) <= DAT_I; end if;
---		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"3750") then ch3_base_count(31 downto 24) <= DAT_I; ch3_current_count(31 downto 24) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"3850") then ch3_base_timer( 7 downto  0) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"3950") then ch3_base_timer(15 downto  8) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"3A50") then ch3_volume <= DAT_I(5 downto 0); end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"3050") then ch3_base_adr( 7 downto  0) <= I_DAT; ch3_current_adr( 7 downto  0) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"3150") then ch3_base_adr(15 downto  8) <= I_DAT; ch3_current_adr(15 downto  8) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"3250") then ch3_base_adr(23 downto 16) <= I_DAT; ch3_current_adr(23 downto 16) <= I_DAT; end if;
+--		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"3350") then ch3_base_adr(31 downto 24) <= I_DAT; ch3_current_adr(31 downto 24) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"3450") then ch3_base_count( 7 downto  0) <= I_DAT; ch3_current_count( 7 downto  0) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"3550") then ch3_base_count(15 downto  8) <= I_DAT; ch3_current_count(15 downto  8) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"3650") then ch3_base_count(23 downto 16) <= I_DAT; ch3_current_count(23 downto 16) <= I_DAT; end if;
+--		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"3750") then ch3_base_count(31 downto 24) <= I_DAT; ch3_current_count(31 downto 24) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"3850") then ch3_base_timer( 7 downto  0) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"3950") then ch3_base_timer(15 downto  8) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"3A50") then ch3_volume <= I_DAT(5 downto 0); end if;
 		------------------------------------------------------------------------
 		-- Channal 4
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"4050") then ch4_base_adr( 7 downto  0) <= DAT_I; ch4_current_adr( 7 downto  0) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"4150") then ch4_base_adr(15 downto  8) <= DAT_I; ch4_current_adr(15 downto  8) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"4250") then ch4_base_adr(23 downto 16) <= DAT_I; ch4_current_adr(23 downto 16) <= DAT_I; end if;
---		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"4350") then ch4_base_adr(31 downto 24) <= DAT_I; ch4_current_adr(31 downto 24) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"4450") then ch4_base_count( 7 downto  0) <= DAT_I; ch4_current_count( 7 downto  0) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"4550") then ch4_base_count(15 downto  8) <= DAT_I; ch4_current_count(15 downto  8) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"4650") then ch4_base_count(23 downto 16) <= DAT_I; ch4_current_count(23 downto 16) <= DAT_I; end if;
---		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"4750") then ch4_base_count(31 downto 24) <= DAT_I; ch4_current_count(31 downto 24) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"4850") then ch4_base_timer( 7 downto  0) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"4950") then ch4_base_timer(15 downto  8) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"4A50") then ch4_volume <= DAT_I(5 downto 0); end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"4050") then ch4_base_adr( 7 downto  0) <= I_DAT; ch4_current_adr( 7 downto  0) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"4150") then ch4_base_adr(15 downto  8) <= I_DAT; ch4_current_adr(15 downto  8) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"4250") then ch4_base_adr(23 downto 16) <= I_DAT; ch4_current_adr(23 downto 16) <= I_DAT; end if;
+--		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"4350") then ch4_base_adr(31 downto 24) <= I_DAT; ch4_current_adr(31 downto 24) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"4450") then ch4_base_count( 7 downto  0) <= I_DAT; ch4_current_count( 7 downto  0) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"4550") then ch4_base_count(15 downto  8) <= I_DAT; ch4_current_count(15 downto  8) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"4650") then ch4_base_count(23 downto 16) <= I_DAT; ch4_current_count(23 downto 16) <= I_DAT; end if;
+--		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"4750") then ch4_base_count(31 downto 24) <= I_DAT; ch4_current_count(31 downto 24) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"4850") then ch4_base_timer( 7 downto  0) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"4950") then ch4_base_timer(15 downto  8) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"4A50") then ch4_volume <= I_DAT(5 downto 0); end if;
 		------------------------------------------------------------------------
 		-- Channal 5
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"5050") then ch5_base_adr( 7 downto  0) <= DAT_I; ch5_current_adr( 7 downto  0) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"5150") then ch5_base_adr(15 downto  8) <= DAT_I; ch5_current_adr(15 downto  8) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"5250") then ch5_base_adr(23 downto 16) <= DAT_I; ch5_current_adr(23 downto 16) <= DAT_I; end if;
---		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"5350") then ch5_base_adr(31 downto 24) <= DAT_I; ch5_current_adr(31 downto 24) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"5450") then ch5_base_count( 7 downto  0) <= DAT_I; ch5_current_count( 7 downto  0) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"5550") then ch5_base_count(15 downto  8) <= DAT_I; ch5_current_count(15 downto  8) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"5650") then ch5_base_count(23 downto 16) <= DAT_I; ch5_current_count(23 downto 16) <= DAT_I; end if;
---		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"5750") then ch5_base_count(31 downto 24) <= DAT_I; ch5_current_count(31 downto 24) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"5850") then ch5_base_timer( 7 downto  0) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"5950") then ch5_base_timer(15 downto  8) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"5A50") then ch5_volume <= DAT_I(5 downto 0); end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"5050") then ch5_base_adr( 7 downto  0) <= I_DAT; ch5_current_adr( 7 downto  0) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"5150") then ch5_base_adr(15 downto  8) <= I_DAT; ch5_current_adr(15 downto  8) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"5250") then ch5_base_adr(23 downto 16) <= I_DAT; ch5_current_adr(23 downto 16) <= I_DAT; end if;
+--		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"5350") then ch5_base_adr(31 downto 24) <= I_DAT; ch5_current_adr(31 downto 24) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"5450") then ch5_base_count( 7 downto  0) <= I_DAT; ch5_current_count( 7 downto  0) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"5550") then ch5_base_count(15 downto  8) <= I_DAT; ch5_current_count(15 downto  8) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"5650") then ch5_base_count(23 downto 16) <= I_DAT; ch5_current_count(23 downto 16) <= I_DAT; end if;
+--		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"5750") then ch5_base_count(31 downto 24) <= I_DAT; ch5_current_count(31 downto 24) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"5850") then ch5_base_timer( 7 downto  0) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"5950") then ch5_base_timer(15 downto  8) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"5A50") then ch5_volume <= I_DAT(5 downto 0); end if;
 		------------------------------------------------------------------------
 		-- Channal 6
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"6050") then ch6_base_adr( 7 downto  0) <= DAT_I; ch6_current_adr( 7 downto  0) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"6150") then ch6_base_adr(15 downto  8) <= DAT_I; ch6_current_adr(15 downto  8) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"6250") then ch6_base_adr(23 downto 16) <= DAT_I; ch6_current_adr(23 downto 16) <= DAT_I; end if;
---		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"6350") then ch6_base_adr(31 downto 24) <= DAT_I; ch6_current_adr(31 downto 24) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"6450") then ch6_base_count( 7 downto  0) <= DAT_I; ch6_current_count( 7 downto  0) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"6550") then ch6_base_count(15 downto  8) <= DAT_I; ch6_current_count(15 downto  8) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"6650") then ch6_base_count(23 downto 16) <= DAT_I; ch6_current_count(23 downto 16) <= DAT_I; end if;
---		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"6750") then ch6_base_count(31 downto 24) <= DAT_I; ch6_current_count(31 downto 24) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"6850") then ch6_base_timer( 7 downto  0) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"6950") then ch6_base_timer(15 downto  8) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"6A50") then ch6_volume <= DAT_I(5 downto 0); end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"6050") then ch6_base_adr( 7 downto  0) <= I_DAT; ch6_current_adr( 7 downto  0) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"6150") then ch6_base_adr(15 downto  8) <= I_DAT; ch6_current_adr(15 downto  8) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"6250") then ch6_base_adr(23 downto 16) <= I_DAT; ch6_current_adr(23 downto 16) <= I_DAT; end if;
+--		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"6350") then ch6_base_adr(31 downto 24) <= I_DAT; ch6_current_adr(31 downto 24) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"6450") then ch6_base_count( 7 downto  0) <= I_DAT; ch6_current_count( 7 downto  0) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"6550") then ch6_base_count(15 downto  8) <= I_DAT; ch6_current_count(15 downto  8) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"6650") then ch6_base_count(23 downto 16) <= I_DAT; ch6_current_count(23 downto 16) <= I_DAT; end if;
+--		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"6750") then ch6_base_count(31 downto 24) <= I_DAT; ch6_current_count(31 downto 24) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"6850") then ch6_base_timer( 7 downto  0) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"6950") then ch6_base_timer(15 downto  8) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"6A50") then ch6_volume <= I_DAT(5 downto 0); end if;
 		------------------------------------------------------------------------
 		-- Channal 7
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"7050") then ch7_base_adr( 7 downto  0) <= DAT_I; ch7_current_adr( 7 downto  0) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"7150") then ch7_base_adr(15 downto  8) <= DAT_I; ch7_current_adr(15 downto  8) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"7250") then ch7_base_adr(23 downto 16) <= DAT_I; ch7_current_adr(23 downto 16) <= DAT_I; end if;
---		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"7350") then ch7_base_adr(31 downto 24) <= DAT_I; ch7_current_adr(31 downto 24) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"7450") then ch7_base_count( 7 downto  0) <= DAT_I; ch7_current_count( 7 downto  0) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"7550") then ch7_base_count(15 downto  8) <= DAT_I; ch7_current_count(15 downto  8) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"7650") then ch7_base_count(23 downto 16) <= DAT_I; ch7_current_count(23 downto 16) <= DAT_I; end if;
---		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"7750") then ch7_base_count(31 downto 24) <= DAT_I; ch7_current_count(31 downto 24) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"7850") then ch7_base_timer( 7 downto  0) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"7950") then ch7_base_timer(15 downto  8) <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"7A50") then ch7_volume <= DAT_I(5 downto 0); end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"7050") then ch7_base_adr( 7 downto  0) <= I_DAT; ch7_current_adr( 7 downto  0) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"7150") then ch7_base_adr(15 downto  8) <= I_DAT; ch7_current_adr(15 downto  8) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"7250") then ch7_base_adr(23 downto 16) <= I_DAT; ch7_current_adr(23 downto 16) <= I_DAT; end if;
+--		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"7350") then ch7_base_adr(31 downto 24) <= I_DAT; ch7_current_adr(31 downto 24) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"7450") then ch7_base_count( 7 downto  0) <= I_DAT; ch7_current_count( 7 downto  0) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"7550") then ch7_base_count(15 downto  8) <= I_DAT; ch7_current_count(15 downto  8) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"7650") then ch7_base_count(23 downto 16) <= I_DAT; ch7_current_count(23 downto 16) <= I_DAT; end if;
+--		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"7750") then ch7_base_count(31 downto 24) <= I_DAT; ch7_current_count(31 downto 24) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"7850") then ch7_base_timer( 7 downto  0) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"7950") then ch7_base_timer(15 downto  8) <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"7A50") then ch7_volume <= I_DAT(5 downto 0); end if;
 		
 
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"8050") then ch_mixing <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"8150") then ch_loop   <= DAT_I; end if;
-		if (IORQn_I = '0' and WRn_I = '0' and ADR_I = X"8250") then ch_enable <= DAT_I; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"8050") then ch_mixing <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"8150") then ch_loop   <= I_DAT; end if;
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ADR = X"8250") then ch_enable <= I_DAT; end if;
 
 		------------------------------------------------------------------------
 		-- Timer Channel 0
 		if (ch_enable(0) = '1') then
-			if (ENA_I = '1') then
+			if (I_ENA = '1') then
 				if (ch0_current_timer = ch0_base_timer) then
 					ch0_current_timer <= (others => '0');
 					ch0_req <= '1';
@@ -336,7 +336,7 @@ begin
 		------------------------------------------------------------------------
 		-- Timer Channel 1
 		if (ch_enable(1) = '1') then
-			if (ENA_I = '1') then
+			if (I_ENA = '1') then
 				if (ch1_current_timer = ch1_base_timer) then
 					ch1_current_timer <= (others => '0');
 					ch1_req <= '1';
@@ -350,7 +350,7 @@ begin
 		------------------------------------------------------------------------
 		-- Timer Channel 2
 		if (ch_enable(2) = '1') then
-			if (ENA_I = '1') then
+			if (I_ENA = '1') then
 				if (ch2_current_timer = ch2_base_timer) then
 					ch2_current_timer <= (others => '0');
 					ch2_req <= '1';
@@ -364,7 +364,7 @@ begin
 		------------------------------------------------------------------------
 		-- Timer Channel 3
 		if (ch_enable(3) = '1') then
-			if (ENA_I = '1') then
+			if (I_ENA = '1') then
 				if (ch3_current_timer = ch3_base_timer) then
 					ch3_current_timer <= (others => '0');
 					ch3_req <= '1';
@@ -378,7 +378,7 @@ begin
 		------------------------------------------------------------------------
 		-- Timer Channel 4
 		if (ch_enable(4) = '1') then
-			if (ENA_I = '1') then
+			if (I_ENA = '1') then
 				if (ch4_current_timer = ch4_base_timer) then
 					ch4_current_timer <= (others => '0');
 					ch4_req <= '1';
@@ -392,7 +392,7 @@ begin
 		------------------------------------------------------------------------
 		-- Timer Channel 5
 		if (ch_enable(5) = '1') then
-			if (ENA_I = '1') then
+			if (I_ENA = '1') then
 				if (ch5_current_timer = ch5_base_timer) then
 					ch5_current_timer <= (others => '0');
 					ch5_req <= '1';
@@ -406,7 +406,7 @@ begin
 		------------------------------------------------------------------------
 		-- Timer Channel 6
 		if (ch_enable(6) = '1') then
-			if (ENA_I = '1') then
+			if (I_ENA = '1') then
 				if (ch6_current_timer = ch6_base_timer) then
 					ch6_current_timer <= (others => '0');
 					ch6_req <= '1';
@@ -420,7 +420,7 @@ begin
 		------------------------------------------------------------------------
 		-- Timer Channel 7
 		if (ch_enable(7) = '1') then
-			if (ENA_I = '1') then
+			if (I_ENA = '1') then
 				if (ch7_current_timer = ch7_base_timer) then
 					ch7_current_timer <= (others => '0');
 					ch7_req <= '1';
@@ -600,16 +600,16 @@ begin
 				end if;
 			------------------------------------------------------------------------
 			when '1' =>
-				if (MEM_ACK_I = '1') then
+				if (I_MEM_ACK = '1') then
 					case channal is
-						when "000" => ch0_out <= MEM_DAT_I;
-						when "001" => ch1_out <= MEM_DAT_I;
-						when "010" => ch2_out <= MEM_DAT_I;
-						when "011" => ch3_out <= MEM_DAT_I;
-						when "100" => ch4_out <= MEM_DAT_I;
-						when "101" => ch5_out <= MEM_DAT_I;
-						when "110" => ch6_out <= MEM_DAT_I;
-						when "111" => ch7_out <= MEM_DAT_I;
+						when "000" => ch0_out <= I_MEM_DAT;
+						when "001" => ch1_out <= I_MEM_DAT;
+						when "010" => ch2_out <= I_MEM_DAT;
+						when "011" => ch3_out <= I_MEM_DAT;
+						when "100" => ch4_out <= I_MEM_DAT;
+						when "101" => ch5_out <= I_MEM_DAT;
+						when "110" => ch6_out <= I_MEM_DAT;
+						when "111" => ch7_out <= I_MEM_DAT;
 						when others => null;
 					end case;
 					state <= '0';
@@ -622,7 +622,7 @@ begin
 
 	------------------------------------------------------------------------
 	-- Port OUT
-	if (ADR_I(15 downto 8) = X"82") then DAT_O <= ch_enable; else DAT_O <= (others => '1'); end if;	
+	if (I_ADR(15 downto 8) = X"82") then O_DAT <= ch_enable; else O_DAT <= (others => '1'); end if;	
 	
 	------------------------------------------------------------------------
 	-- Volume Channal
@@ -650,11 +650,11 @@ begin
 end process;
 
 ------------------------------------------------------------------------
-MEM_ADR_O <= temp_adr;
-MEM_RD_O  <= temp_read;
-INT_O     <= temp_int;
-LEFT_O    <= ("000" & ch7_volume_out) + ("000" & ch6_volume_out) + ("000" & ch5_volume_out) + ("000" & ch4_volume_out) + ("000" & left_stream3) + ("000" & left_stream2) + ("000" & left_stream1) + ("000" & left_stream0);
-RIGHT_O   <= ("000" & ch3_volume_out) + ("000" & ch2_volume_out) + ("000" & ch1_volume_out) + ("000" & ch0_volume_out) + ("000" & right_stream3) + ("000" & right_stream2) + ("000" & right_stream1) + ("000" & right_stream0);
+O_MEM_ADR <= temp_adr;
+O_MEM_RD  <= temp_read;
+O_INT     <= temp_int;
+O_LEFT    <= ("000" & ch7_volume_out) + ("000" & ch6_volume_out) + ("000" & ch5_volume_out) + ("000" & ch4_volume_out) + ("000" & left_stream3) + ("000" & left_stream2) + ("000" & left_stream1) + ("000" & left_stream0);
+O_RIGHT   <= ("000" & ch3_volume_out) + ("000" & ch2_volume_out) + ("000" & ch1_volume_out) + ("000" & ch0_volume_out) + ("000" & right_stream3) + ("000" & right_stream2) + ("000" & right_stream1) + ("000" & right_stream0);
 
 end rtl;
 

@@ -1,4 +1,4 @@
--------------------------------------------------------------------[15.03.2015]
+-------------------------------------------------------------------[11.09.2015]
 -- Video
 -------------------------------------------------------------------------------
 -- Engineer: 	MVV
@@ -13,44 +13,44 @@ use IEEE.std_logic_unsigned.all;
 
 entity video is
 port (
-	CLK_I		: in std_logic;
-	ENA_I		: in std_logic;
-	CLK_VGA_I	: in std_logic;
+	I_CLK		: in std_logic;
+	I_ENA		: in std_logic;
+	I_CLK_VGA	: in std_logic;
 
-	CH0_INT_O	: out std_logic;
-	CH0_ADR_O	: out std_logic_vector(12 downto 0);
-	CH0_DAT_I	: in std_logic_vector(7 downto 0);
-	CH0_BORDER_I	: in std_logic_vector(2 downto 0);	-- Биты D0..D2 порта xxFE определяют цвет бордюра
-	CH0_ATTR_O	: out std_logic_vector(7 downto 0);
-	CH0_BORDER_O	: out std_logic;
+	O_CH0_INT	: out std_logic;
+	O_CH0_ADR	: out std_logic_vector(12 downto 0);
+	I_CH0_DAT	: in std_logic_vector(7 downto 0);
+	I_CH0_BORDER	: in std_logic_vector(2 downto 0);	-- Биты D0..D2 порта xxFE определяют цвет бордюра
+	O_CH0_ATTR	: out std_logic_vector(7 downto 0);
+	O_CH0_BORDER	: out std_logic;
 	
-	CH1_INT_O	: out std_logic;
-	CH1_ADR_O	: out std_logic_vector(12 downto 0);
-	CH1_DAT_I	: in std_logic_vector(7 downto 0);
-	CH1_BORDER_I	: in std_logic_vector(2 downto 0);	-- Биты D0..D2 порта xxFE определяют цвет бордюра
-	CH1_ATTR_O	: out std_logic_vector(7 downto 0);
-	CH1_BORDER_O	: out std_logic;
+	O_CH1_INT	: out std_logic;
+	O_CH1_ADR	: out std_logic_vector(12 downto 0);
+	I_CH1_DAT	: in std_logic_vector(7 downto 0);
+	I_CH1_BORDER	: in std_logic_vector(2 downto 0);	-- Биты D0..D2 порта xxFE определяют цвет бордюра
+	O_CH1_ATTR	: out std_logic_vector(7 downto 0);
+	O_CH1_BORDER	: out std_logic;
 
-	CH2_INT_O	: out std_logic;
-	CH2_ADR_O	: out std_logic_vector(12 downto 0);
-	CH2_DAT_I	: in std_logic_vector(7 downto 0);
-	CH2_BORDER_I	: in std_logic_vector(2 downto 0);	-- Биты D0..D2 порта xxFE определяют цвет бордюра
-	CH2_ATTR_O	: out std_logic_vector(7 downto 0);
-	CH2_BORDER_O	: out std_logic;
+	O_CH2_INT	: out std_logic;
+	O_CH2_ADR	: out std_logic_vector(12 downto 0);
+	I_CH2_DAT	: in std_logic_vector(7 downto 0);
+	I_CH2_BORDER	: in std_logic_vector(2 downto 0);	-- Биты D0..D2 порта xxFE определяют цвет бордюра
+	O_CH2_ATTR	: out std_logic_vector(7 downto 0);
+	O_CH2_BORDER	: out std_logic;
 
-	CH3_INT_O	: out std_logic;
-	CH3_ADR_O	: out std_logic_vector(12 downto 0);
-	CH3_DAT_I	: in std_logic_vector(7 downto 0);
-	CH3_BORDER_I	: in std_logic_vector(2 downto 0);	-- Биты D0..D2 порта xxFE определяют цвет бордюра
-	CH3_ATTR_O	: out std_logic_vector(7 downto 0);
-	CH3_BORDER_O	: out std_logic;
+	O_CH3_INT	: out std_logic;
+	O_CH3_ADR	: out std_logic_vector(12 downto 0);
+	I_CH3_DAT	: in std_logic_vector(7 downto 0);
+	I_CH3_BORDER	: in std_logic_vector(2 downto 0);	-- Биты D0..D2 порта xxFE определяют цвет бордюра
+	O_CH3_ATTR	: out std_logic_vector(7 downto 0);
+	O_CH3_BORDER	: out std_logic;
 	
-	SEL_I		: in std_logic_vector(1 downto 0);
-	MODE_I		: in std_logic := '0';
-	BLANK_O		: out std_logic;
-	RGB_O		: out std_logic_vector(5 downto 0);	-- RRGGBB
-	HSYNC_O		: out std_logic;
-	VSYNC_O		: out std_logic);
+	I_SEL		: in std_logic_vector(1 downto 0);
+	I_MODE		: in std_logic := '0';
+	O_BLANK		: out std_logic;
+	O_RGB		: out std_logic_vector(5 downto 0);	-- RRGGBB
+	O_HSYNC		: out std_logic;
+	O_VSYNC		: out std_logic);
 end entity;
 
 architecture rtl of video is
@@ -150,16 +150,16 @@ architecture rtl of video is
 	
 begin
 
-process (CLK_VGA_I, h_count_reg)
+process (I_CLK_VGA, h_count_reg)
 begin
-	if (CLK_VGA_I'event and CLK_VGA_I = '1') then
+	if (I_CLK_VGA'event and I_CLK_VGA = '1') then
 		if (h_count_reg = h_end_count) then
 			h_count_reg <= (others => '0');
 		else
 			h_count_reg <= h_count_reg + 1;
 		end if;
 		
-		if ((h_count_reg = spec_border_left - 8 or h_count_reg = h_visible_area / 2 + spec_border_left - 8) and MODE_I = '0') or ((h_count_reg = spec_border_left * 2 - 16) and MODE_I = '1') then
+		if ((h_count_reg = spec_border_left - 8 or h_count_reg = h_visible_area / 2 + spec_border_left - 8) and I_MODE = '0') or ((h_count_reg = spec_border_left * 2 - 16) and I_MODE = '1') then
 			spec_h_count_reg <= (others => '0');
 		else
 			spec_h_count_reg <= spec_h_count_reg + 1;
@@ -172,7 +172,7 @@ begin
 				v_count_reg <= v_count_reg + 1;
 			end if;
 			
-			if ((v_count_reg = spec_border_top or v_count_reg = v_visible_area / 2 + spec_border_top) and MODE_I = '0') or ((v_count_reg = spec_border_top * 2) and MODE_I = '1') then
+			if ((v_count_reg = spec_border_top or v_count_reg = v_visible_area / 2 + spec_border_top) and I_MODE = '0') or ((v_count_reg = spec_border_top * 2) and I_MODE = '1') then
 				spec_v_count_reg <= (others => '0');
 			else
 				spec_v_count_reg <= spec_v_count_reg + 1;
@@ -215,75 +215,75 @@ v_sync		<= '1' when (v_count_reg < v_sync_on) or (v_count_reg > v_sync_off) else
 blank_sig	<= '1' when (h_count_reg > h_pixels_across) or (v_count_reg > v_pixels_down) else '0';
 
 --int_sig	<= '1' when (h_count_reg = h_sync_on and v_count_reg = v_sync_on) else '0';
-scr_sel(0)	<= SEL_I(0) when (MODE_I = '1') else
+scr_sel(0)	<= I_SEL(0) when (I_MODE = '1') else
 			'0' when (h_count_reg < h_visible_area / 2) else
 			'1';
-scr_sel(1)	<= SEL_I(1) when (MODE_I = '1') else
+scr_sel(1)	<= I_SEL(1) when (I_MODE = '1') else
 			'0' when (v_count_reg < v_visible_area / 2) else
 			'1';
 
-temp_h		<= spec_h_count_reg(8 downto 0) when (MODE_I = '0') else spec_h_count_reg(9 downto 1);
-temp_v		<= spec_v_count_reg(8 downto 0) when (MODE_I = '0') else spec_v_count_reg(9 downto 1);
+temp_h		<= spec_h_count_reg(8 downto 0) when (I_MODE = '0') else spec_h_count_reg(9 downto 1);
+temp_v		<= spec_v_count_reg(8 downto 0) when (I_MODE = '0') else spec_v_count_reg(9 downto 1);
 			
 paper		<= '1' when (temp_h < spec_screen_h and temp_v < spec_screen_v) else '0';
 
 vga_rgb <= 	(others => '0') when (blank_sig = '1') else
-		"001100" when ((h_count_reg < 320 and (v_count_reg = 0 or v_count_reg = 239)) or ((h_count_reg = 0 or h_count_reg = 319) and v_count_reg < 240)) and SEL_I = "00" and MODE_I = '0' else
-		"001100" when ((h_count_reg > 319 and (v_count_reg = 0 or v_count_reg = 239)) or ((h_count_reg = 320 or h_count_reg = 639) and v_count_reg < 240)) and SEL_I = "01" and MODE_I = '0' else
-		"001100" when ((h_count_reg < 320 and (v_count_reg = 240 or v_count_reg = 479)) or ((h_count_reg = 0 or h_count_reg = 319) and v_count_reg > 239)) and SEL_I = "10" and MODE_I = '0' else
-		"001100" when ((h_count_reg > 319 and (v_count_reg = 240 or v_count_reg = 479)) or ((h_count_reg = 320 or h_count_reg = 639) and v_count_reg > 239)) and SEL_I = "11" and MODE_I = '0' else
+		"001100" when ((h_count_reg < 320 and (v_count_reg = 0 or v_count_reg = 239)) or ((h_count_reg = 0 or h_count_reg = 319) and v_count_reg < 240)) and I_SEL = "00" and I_MODE = '0' else
+		"001100" when ((h_count_reg > 319 and (v_count_reg = 0 or v_count_reg = 239)) or ((h_count_reg = 320 or h_count_reg = 639) and v_count_reg < 240)) and I_SEL = "01" and I_MODE = '0' else
+		"001100" when ((h_count_reg < 320 and (v_count_reg = 240 or v_count_reg = 479)) or ((h_count_reg = 0 or h_count_reg = 319) and v_count_reg > 239)) and I_SEL = "10" and I_MODE = '0' else
+		"001100" when ((h_count_reg > 319 and (v_count_reg = 240 or v_count_reg = 479)) or ((h_count_reg = 320 or h_count_reg = 639) and v_count_reg > 239)) and I_SEL = "11" and I_MODE = '0' else
 		
 		attr_reg(4) & (attr_reg(4) and attr_reg(6)) & attr_reg(5) & (attr_reg(5) and attr_reg(6)) & attr_reg(3) & (attr_reg(3) and attr_reg(6)) when paper1 = '1' and (pixel xor (flash(4) and attr_reg(7))) = '0' else
 		attr_reg(1) & (attr_reg(1) and attr_reg(6)) & attr_reg(2) & (attr_reg(2) and attr_reg(6)) & attr_reg(0) & (attr_reg(0) and attr_reg(6)) when paper1 = '1' and (pixel xor (flash(4) and attr_reg(7))) = '1' else
 		spec_border(1) & '0' & spec_border(2) & '0' & spec_border(0) & '0';
 
-process (scr_sel, paper, attr_reg, CH0_BORDER_I, CH1_BORDER_I, CH2_BORDER_I, CH3_BORDER_I, CH0_DAT_I, CH1_DAT_I, CH2_DAT_I, CH3_DAT_I)
+process (scr_sel, paper, attr_reg, I_CH0_BORDER, I_CH1_BORDER, I_CH2_BORDER, I_CH3_BORDER, I_CH0_DAT, I_CH1_DAT, I_CH2_DAT, I_CH3_DAT)
 begin
 	case scr_sel is
 		when "00" =>
-			spec_border  <= CH0_BORDER_I;
-			spec_data    <= CH0_DAT_I;
-			CH0_BORDER_O <= paper;
-			CH0_ATTR_O   <= attr_reg;
-			CH1_BORDER_O <= '0';
-			CH1_ATTR_O   <= (others => '1');
-			CH2_BORDER_O <= '0';
-			CH2_ATTR_O   <= (others => '1');
-			CH3_BORDER_O <= '0';
-			CH3_ATTR_O   <= (others => '1');
+			spec_border  <= I_CH0_BORDER;
+			spec_data    <= I_CH0_DAT;
+			O_CH0_BORDER <= paper;
+			O_CH0_ATTR   <= attr_reg;
+			O_CH1_BORDER <= '0';
+			O_CH1_ATTR   <= (others => '1');
+			O_CH2_BORDER <= '0';
+			O_CH2_ATTR   <= (others => '1');
+			O_CH3_BORDER <= '0';
+			O_CH3_ATTR   <= (others => '1');
 		when "01" =>
-			spec_border  <= CH1_BORDER_I;
-			spec_data    <= CH1_DAT_I;
-			CH1_BORDER_O <= paper;
-			CH1_ATTR_O   <= attr_reg;
-			CH2_BORDER_O <= '0';
-			CH2_ATTR_O   <= (others => '1');
-			CH3_BORDER_O <= '0';
-			CH3_ATTR_O   <= (others => '1');
-			CH0_BORDER_O <= '0';
-			CH0_ATTR_O   <= (others => '1');
+			spec_border  <= I_CH1_BORDER;
+			spec_data    <= I_CH1_DAT;
+			O_CH1_BORDER <= paper;
+			O_CH1_ATTR   <= attr_reg;
+			O_CH2_BORDER <= '0';
+			O_CH2_ATTR   <= (others => '1');
+			O_CH3_BORDER <= '0';
+			O_CH3_ATTR   <= (others => '1');
+			O_CH0_BORDER <= '0';
+			O_CH0_ATTR   <= (others => '1');
 		when "10" =>
-			spec_border  <= CH2_BORDER_I;
-			spec_data    <= CH2_DAT_I;
-			CH2_BORDER_O <= paper;
-			CH2_ATTR_O   <= attr_reg;
-			CH3_BORDER_O <= '0';
-			CH3_ATTR_O   <= (others => '1');
-			CH0_BORDER_O <= '0';
-			CH0_ATTR_O   <= (others => '1');
-			CH1_BORDER_O <= '0';
-			CH1_ATTR_O   <= (others => '1');
+			spec_border  <= I_CH2_BORDER;
+			spec_data    <= I_CH2_DAT;
+			O_CH2_BORDER <= paper;
+			O_CH2_ATTR   <= attr_reg;
+			O_CH3_BORDER <= '0';
+			O_CH3_ATTR   <= (others => '1');
+			O_CH0_BORDER <= '0';
+			O_CH0_ATTR   <= (others => '1');
+			O_CH1_BORDER <= '0';
+			O_CH1_ATTR   <= (others => '1');
 		when "11" =>
-			spec_border  <= CH3_BORDER_I;
-			spec_data    <= CH3_DAT_I;
-			CH3_BORDER_O <= paper;
-			CH3_ATTR_O   <= attr_reg;
-			CH0_BORDER_O <= '0';
-			CH0_ATTR_O   <= (others => '1');
-			CH1_BORDER_O <= '0';
-			CH1_ATTR_O   <= (others => '1');
-			CH2_BORDER_O <= '0';
-			CH2_ATTR_O   <= (others => '1');
+			spec_border  <= I_CH3_BORDER;
+			spec_data    <= I_CH3_DAT;
+			O_CH3_BORDER <= paper;
+			O_CH3_ATTR   <= attr_reg;
+			O_CH0_BORDER <= '0';
+			O_CH0_ATTR   <= (others => '1');
+			O_CH1_BORDER <= '0';
+			O_CH1_ATTR   <= (others => '1');
+			O_CH2_BORDER <= '0';
+			O_CH2_ATTR   <= (others => '1');
 		when others => null;
 	end case;
 end process;
@@ -291,9 +291,9 @@ end process;
 -- 3.5MHz = 285,71428571428571428571428571429ns
 -- 50Hz = 20ms = 20000000ns : 285,71428571428571428571428571429ns = spec_t_state_per_int = 70000
 
-process (CLK_I, ENA_I)
+process (I_CLK, I_ENA)
 begin
-	if (CLK_I'event and CLK_I = '1' and ENA_I = '1') then
+	if (I_CLK'event and I_CLK = '1' and I_ENA = '1') then
 		if (timer = spec_t_state_per_int) then
 			timer <= (others => '0');
 			flash <= flash + 1;
@@ -308,19 +308,19 @@ begin
 	end if;
 end process;	
 		
-CH0_INT_O	<= int_sig;
-CH1_INT_O	<= int_sig;
-CH2_INT_O	<= int_sig;
-CH3_INT_O	<= int_sig;
+O_CH0_INT	<= int_sig;
+O_CH1_INT	<= int_sig;
+O_CH2_INT	<= int_sig;
+O_CH3_INT	<= int_sig;
 
-CH0_ADR_O	<= addr_reg;
-CH1_ADR_O	<= addr_reg;
-CH2_ADR_O	<= addr_reg;
-CH3_ADR_O	<= addr_reg;
+O_CH0_ADR	<= addr_reg;
+O_CH1_ADR	<= addr_reg;
+O_CH2_ADR	<= addr_reg;
+O_CH3_ADR	<= addr_reg;
 
-RGB_O 		<= vga_rgb;
-HSYNC_O 	<= h_sync;
-VSYNC_O 	<= v_sync;
-BLANK_O		<= blank_sig;
+O_RGB 		<= vga_rgb;
+O_HSYNC 	<= h_sync;
+O_VSYNC 	<= v_sync;
+O_BLANK		<= blank_sig;
 
 end architecture;

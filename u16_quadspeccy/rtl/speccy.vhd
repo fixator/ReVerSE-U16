@@ -1,6 +1,6 @@
--------------------------------------------------------------------[20.03.2015]
--- ReVerSE-u16 QuadSpeccy Version 2.0
--- DEVBOARD ReVerSE-U16
+-------------------------------------------------------------------[11.09.2015]
+-- QuadSpeccy rev.20150911
+-- DEVBOARD ReVerSE-U16 rev.C
 -------------------------------------------------------------------------------
 -- Engineer: 	MVV
 --
@@ -8,8 +8,10 @@
 -- 11.03.2015	возможность открыть окно на весь экран, порт #FF
 -- 14.03.2015	DMA Sound для CPU0 (тест)
 -- 20.03.2015	Stereo Adder (parallel) разделил, чтобы не ругался TimeQuset
+-- 11.09.2015	Kempston Mouse, переписан USB HID (автор Alexey Spirkov)
 -------------------------------------------------------------------------------
-
+--
+-- https://github.com/mvvproject/ReVerSE-U16/tree/master/u16_quadspeccy
 -- http://zx-pk.ru/showthread.php?t=23528
 
 -- Copyright (c) 2015 MVV
@@ -67,58 +69,75 @@ use IEEE.numeric_std.all;
 -- 0000000-1FFFFFF
 
 -- FLASH 2MB:
--- 68000-6BFFF		GLUK 			16K
--- 6C000-6FFFF		TR-DOS 			16K
--- 70000-73FFF		OS'86 			16K
--- 74000-77FFF		OS'82 			16K
--- 78000-7AFFF		DivMMC			 8K
--- 7B000-7BFFF		свободно		 8К
--- 7C000-7FFFF		свободно		16К
+-- 68000-6BFFF		GLUK 		16K
+-- 6C000-6FFFF		TR-DOS 		16K
+-- 70000-73FFF		OS'86 		16K
+-- 74000-77FFF		OS'82 		16K
+-- 78000-7AFFF		DivMMC		 8K
+-- 7B000-7BFFF		свободно	 8К
+-- 7C000-7FFFF		свободно	16К
 
 entity speccy is
 port (
 	-- Clock (50MHz)
 	CLK_50MHZ	: in std_logic;
 	-- SDRAM (32MB 16x16bit)
-	SDRAM_D		: inout std_logic_vector(15 downto 0);
-	SDRAM_A		: out std_logic_vector(12 downto 0);
-	SDRAM_BA	: out std_logic_vector(1 downto 0);
-	SDRAM_CLK	: out std_logic;
-	SDRAM_DQML	: out std_logic;
-	SDRAM_DQMH	: out std_logic;
-	SDRAM_WE_n	: out std_logic;
-	SDRAM_CAS_n	: out std_logic;
-	SDRAM_RAS_n	: out std_logic;
+	DRAM_DQ		: inout std_logic_vector(15 downto 0);
+	DRAM_A		: out std_logic_vector(12 downto 0);
+	DRAM_BA		: out std_logic_vector(1 downto 0);
+	DRAM_CLK	: out std_logic;
+	DRAM_DQML	: out std_logic;
+	DRAM_DQMH	: out std_logic;
+	DRAM_NWE	: out std_logic;
+	DRAM_NCAS	: out std_logic;
+	DRAM_NRAS	: out std_logic;
 	-- RTC (DS1338Z-33+)
-	SCL		: inout std_logic;
-	SDA		: inout std_logic;
+--	RTC_SQW		: in std_logic;
+	-- I2C
+	I2C_SCL		: inout std_logic;
+	I2C_SDA		: inout std_logic;
 	-- SPI FLASH (M25P16)
 	DATA0		: in std_logic;
 	NCSO		: out std_logic;
 	DCLK		: out std_logic;
 	ASDO		: out std_logic;
-	-- SPI (ENC424J600)
+	-- Ethernet (ENC424J600)
 	ETH_SO		: in std_logic;
 	ETH_NINT	: in std_logic;
 	ETH_NCS		: out std_logic;
 	-- HDMI
+--	HDMI_CEC	: inout std_logic;
+--	HDMI_NDET	: in std_logic;
 	HDMI_D0		: out std_logic;
 	HDMI_D1		: out std_logic;
-	HDMI_D1_n	: out std_logic;
+	HDMI_D1N	: out std_logic;
 	HDMI_D2		: out std_logic;
 	HDMI_CLK	: out std_logic;
-	-- External I/O
-	RST_n		: in std_logic;
-	GPI		: in std_logic;
-	RX		: in std_logic;
-	DAC_OUT_L	: out std_logic;
-	DAC_OUT_R	: out std_logic;
+	-- USB HOST (VNC2-32)
+	USB_NRESET	: in std_logic;
+	USB_TX		: in std_logic;
+--	USB_RX		: out std_logic;
+--	USB_IO1		: in std_logic;
+--	USB_IO3		: in std_logic;
+--	USB_CLK		: out std_logic;
+	USB_NCS		: inout std_logic;
+	USB_SI		: inout std_logic;
+--	USB_SO		: in std_logic;
+	-- uBUS+
+--	AP		: out std_logic;
+--	AN		: out std_logic;
+--	BP		: in std_logic;
+--	BN		: in std_logic;
+--	CP		: in std_logic;
+--	CN		: in std_logic;
+	DP		: out std_logic;
+	DN		: out std_logic;
 	-- SD/MMC Card
-	SD_DET_n	: in std_logic;		
+	SD_NDET		: in std_logic;		
 	SD_SO		: in std_logic;
 	SD_SI		: out std_logic;
 	SD_CLK		: out std_logic;
-	SD_CS_n		: out std_logic);
+	SD_NCS		: out std_logic);
 end speccy;
 
 architecture rtl of speccy is
@@ -289,6 +308,11 @@ signal kb_fn_bus	: std_logic_vector(12 downto 1);
 signal kb_joy_bus	: std_logic_vector(4 downto 0);
 signal key_temp		: std_logic_vector(2 downto 0);
 signal kb_soft		: std_logic_vector(2 downto 0);
+-- Mouse
+signal ms_x		: std_logic_vector(7 downto 0);
+signal ms_y		: std_logic_vector(7 downto 0);
+signal ms_z		: std_logic_vector(7 downto 0);
+signal ms_b		: std_logic_vector(7 downto 0);
 -- Video
 signal video_hsync	: std_logic;
 signal video_vsync	: std_logic;
@@ -382,7 +406,7 @@ port map (
 	c0		=> clk_84mhz,	-- 84.0 MHz
 	c1		=> clk_28mhz,	-- 28.0 MHz
 	c2		=> clk_14mhz,	-- 14.0 MHz
-	c3		=> SDRAM_CLK);	-- 84.0 MHz
+	c3		=> DRAM_CLK);	-- 84.0 MHz
 -- PLL 1
 U1: entity work.altpll1
 port map (
@@ -409,208 +433,216 @@ port map (
 -- Video
 U3: entity work.video
 port map (
-	CLK_I		=> clk_28mhz,
-	ENA_I		=> ena_3_5mhz,
-	CLK_VGA_I	=> clk_vga,
+	I_CLK		=> clk_28mhz,
+	I_ENA		=> ena_3_5mhz,
+	I_CLK_VGA	=> clk_vga,
 	-- Channal 0
-	CH0_INT_O	=> zx0_cpu_int,
-	CH0_ADR_O	=> zx0_video_a,
-	CH0_DAT_I	=> zx0_video_do,
-	CH0_BORDER_I	=> zx0_port_xxfe(2 downto 0),	-- Биты D0..D2 порта xxFE определяют цвет бордюра
-	CH0_ATTR_O	=> zx0_video_attr,
-	CH0_BORDER_O	=> zx0_video_border,
+	O_CH0_INT	=> zx0_cpu_int,
+	O_CH0_ADR	=> zx0_video_a,
+	I_CH0_DAT	=> zx0_video_do,
+	I_CH0_BORDER	=> zx0_port_xxfe(2 downto 0),	-- Биты D0..D2 порта xxFE определяют цвет бордюра
+	O_CH0_ATTR	=> zx0_video_attr,
+	O_CH0_BORDER	=> zx0_video_border,
 	-- Channal 1
-	CH1_INT_O	=> zx1_cpu_int,
-	CH1_ADR_O	=> zx1_video_a,
-	CH1_DAT_I	=> zx1_video_do,
-	CH1_BORDER_I	=> zx1_port_xxfe(2 downto 0),	-- Биты D0..D2 порта xxFE определяют цвет бордюра
-	CH1_ATTR_O	=> zx1_video_attr,
-	CH1_BORDER_O	=> zx1_video_border,
+	O_CH1_INT	=> zx1_cpu_int,
+	O_CH1_ADR	=> zx1_video_a,
+	I_CH1_DAT	=> zx1_video_do,
+	I_CH1_BORDER	=> zx1_port_xxfe(2 downto 0),	-- Биты D0..D2 порта xxFE определяют цвет бордюра
+	O_CH1_ATTR	=> zx1_video_attr,
+	O_CH1_BORDER	=> zx1_video_border,
 	-- Channal 2
-	CH2_INT_O	=> zx2_cpu_int,
-	CH2_ADR_O	=> zx2_video_a,
-	CH2_DAT_I	=> zx2_video_do,
-	CH2_BORDER_I	=> zx2_port_xxfe(2 downto 0),	-- Биты D0..D2 порта xxFE определяют цвет бордюра
-	CH2_ATTR_O	=> zx2_video_attr,
-	CH2_BORDER_O	=> zx2_video_border,
+	O_CH2_INT	=> zx2_cpu_int,
+	O_CH2_ADR	=> zx2_video_a,
+	I_CH2_DAT	=> zx2_video_do,
+	I_CH2_BORDER	=> zx2_port_xxfe(2 downto 0),	-- Биты D0..D2 порта xxFE определяют цвет бордюра
+	O_CH2_ATTR	=> zx2_video_attr,
+	O_CH2_BORDER	=> zx2_video_border,
 	-- Channal 3
-	CH3_INT_O	=> zx3_cpu_int,
-	CH3_ADR_O	=> zx3_video_a,
-	CH3_DAT_I	=> zx3_video_do,
-	CH3_BORDER_I	=> zx3_port_xxfe(2 downto 0),	-- Биты D0..D2 порта xxFE определяют цвет бордюра
-	CH3_ATTR_O	=> zx3_video_attr,
-	CH3_BORDER_O	=> zx3_video_border,
+	O_CH3_INT	=> zx3_cpu_int,
+	O_CH3_ADR	=> zx3_video_a,
+	I_CH3_DAT	=> zx3_video_do,
+	I_CH3_BORDER	=> zx3_port_xxfe(2 downto 0),	-- Биты D0..D2 порта xxFE определяют цвет бордюра
+	O_CH3_ATTR	=> zx3_video_attr,
+	O_CH3_BORDER	=> zx3_video_border,
 	--
-	SEL_I		=> zx_sel,
-	MODE_I		=> kb_soft(1),
-	BLANK_O		=> video_blank,
-	RGB_O		=> video_rgb,
-	HSYNC_O		=> video_hsync,
-	VSYNC_O		=> video_vsync);
+	I_SEL		=> zx_sel,
+	I_MODE		=> kb_soft(1),
+	O_BLANK		=> video_blank,
+	O_RGB		=> video_rgb,
+	O_HSYNC		=> video_hsync,
+	O_VSYNC		=> video_vsync);
 
+-- HDMI
 U4: entity work.hdmi
 port map(
-	CLK_I		=> clk_hdmi,
-	CLK_PIXEL_I	=> clk_vga,
-	R_I		=> video_rgb(5 downto 4) & video_rgb(5 downto 4) & video_rgb(5 downto 4) & video_rgb(5 downto 4),
-	G_I		=> video_rgb(3 downto 2) & video_rgb(3 downto 2) & video_rgb(3 downto 2) & video_rgb(3 downto 2),
-	B_I		=> video_rgb(1 downto 0) & video_rgb(1 downto 0) & video_rgb(1 downto 0) & video_rgb(1 downto 0),
-	BLANK_I		=> video_blank,
-	HSYNC_I		=> video_hsync,
-	VSYNC_I		=> video_vsync,
-	TMDS_D0_O	=> HDMI_D0,
-	TMDS_D1_O	=> HDMI_D1,
-	TMDS_D2_O	=> HDMI_D2,
-	TMDS_CLK_O	=> HDMI_CLK);
+	I_CLK		=> clk_hdmi,
+	I_CLK_PIXEL	=> clk_vga,
+	I_R		=> video_rgb(5 downto 4) & video_rgb(5 downto 4) & video_rgb(5 downto 4) & video_rgb(5 downto 4),
+	I_G		=> video_rgb(3 downto 2) & video_rgb(3 downto 2) & video_rgb(3 downto 2) & video_rgb(3 downto 2),
+	I_B		=> video_rgb(1 downto 0) & video_rgb(1 downto 0) & video_rgb(1 downto 0) & video_rgb(1 downto 0),
+	I_BLANK		=> video_blank,
+	I_HSYNC		=> video_hsync,
+	I_VSYNC		=> video_vsync,
+	O_TMDS_D0	=> HDMI_D0,
+	O_TMDS_D1	=> HDMI_D1,
+	O_TMDS_D2	=> HDMI_D2,
+	O_TMDS_CLK	=> HDMI_CLK);
 	
--- Keyboard
-U5: entity work.keyboard
+-- USB HID
+U5: entity work.deserializer
+generic map (
+	divisor			=> 434)		-- divisor = 50MHz / 115200 Baud = 434
 port map(
-	CLK		=> clk_28mhz,
-	RESET		=> areset,
-	A		=> kb_a_bus,
-	KEYB		=> kb_do_bus,
-	KEYF		=> kb_fn_bus,
-	KEYJOY		=> kb_joy_bus,
-	KEYSOFT		=> kb_soft_bus,
-	RX		=> RX);
+	I_CLK			=> CLK_50MHZ,
+	I_RESET			=> areset,
+	I_RX			=> USB_TX,
+	I_NEWFRAME		=> USB_SI,
+	I_ADDR			=> kb_a_bus,
+	O_MOUSE_X		=> ms_x,
+	O_MOUSE_Y		=> ms_y,
+	O_MOUSE_Z		=> ms_z,
+	O_MOUSE_BUTTONS		=> ms_b,
+	O_KEYBOARD_SCAN		=> kb_do_bus,
+	O_KEYBOARD_FKEYS	=> kb_fn_bus,
+	O_KEYBOARD_JOYKEYS	=> kb_joy_bus,
+	O_KEYBOARD_CTLKEYS	=> kb_soft_bus);
 
 -- DMA Sound
 U6: entity work.dmasound
 port map(
-	RST_I		=> reset,
-	CLK_I		=> clk_84mhz,
-	ENA_I		=> cpu_ena,
-	ADR_I		=> zx0_cpu_a,
-	DAT_I		=> zx0_cpu_do,
-	DAT_O		=> dmasound_do,
-	WRn_I		=> zx0_cpu_wr_n,
-	RDn_I		=> zx0_cpu_rd_n,
-	IORQn_I		=> zx0_cpu_iorq_n,
-	INTA_I		=> zx0_cpu_inta,
-	INT_O		=> dmasound_int,
+	I_RST		=> reset,
+	I_CLK		=> clk_84mhz,
+	I_ENA		=> cpu_ena,
+	I_ADR		=> zx0_cpu_a,
+	I_DAT		=> zx0_cpu_do,
+	O_DAT		=> dmasound_do,
+	I_WR_N		=> zx0_cpu_wr_n,
+	I_RD_N		=> zx0_cpu_rd_n,
+	I_IORQ_N	=> zx0_cpu_iorq_n,
+	I_INTA		=> zx0_cpu_inta,
+	O_INT		=> dmasound_int,
 	-- Sound
-	LEFT_O		=> dmasound_left_out,
-	RIGHT_O		=> dmasound_right_out, 
+	O_LEFT		=> dmasound_left_out,
+	O_RIGHT		=> dmasound_right_out, 
 	-- Memory
-	MEM_ADR_O	=> dmasound_mem_adr,
-	MEM_DAT_I	=> zx0_ram_di,
-	MEM_RD_O	=> dmasound_mem_rd,
-	MEM_ACK_I	=> dmasound_mem_ack);
+	O_MEM_ADR	=> dmasound_mem_adr,
+	I_MEM_DAT	=> zx0_ram_di,
+	O_MEM_RD	=> dmasound_mem_rd,
+	I_MEM_ACK	=> dmasound_mem_ack);
 
 -- Z-Controller
 U7: entity work.zcontroller
 port map (
-	RESET		=> reset,
-	CLK		=> clk_28mhz,
-	A		=> zc_a,
-	DI		=> zc_di_bus,
-	DO		=> zc_do_bus,
-	RD		=> zc_rd,
-	WR		=> zc_wr,
-	SDDET		=> SD_DET_n,
-	SDPROT		=> '0',
-	CS_n		=> zc_cs_n,
-	SCLK		=> zc_sclk,
-	MOSI		=> zc_mosi,
-	MISO		=> SD_SO);
+	I_RESET		=> reset,
+	I_CLK		=> clk_28mhz,
+	I_ADDR		=> zc_a,
+	I_DATA		=> zc_di_bus,
+	O_DATA		=> zc_do_bus,
+	I_RD		=> zc_rd,
+	I_WR		=> zc_wr,
+	I_SDDET		=> SD_NDET,
+	I_SDPROT	=> '0',
+	O_CS_N		=> zc_cs_n,
+	O_SCLK		=> zc_sclk,
+	O_MOSI		=> zc_mosi,
+	I_MISO		=> SD_SO);
 
 -- SPI FLASH 25MHz Max SCK -- Ethernet ENC424J600
 U8: entity work.spi
 port map (
-	RESET		=> reset,
-	CLK		=> clk_28mhz,
-	SCK		=> clk_14mhz,
-	A		=> spi_a,
-	DI		=> spi_di_bus,
-	DO		=> spi_do_bus,
-	WR		=> spi_wr,
-	BUSY		=> spi_busy,
-	CS_n		=> spi_cs_n,
-	SCLK		=> spi_clk,
-	MOSI		=> spi_si,
-	MISO		=> spi_so);
+	I_RESET		=> reset,
+	I_CLK		=> clk_28mhz,
+	I_SCK		=> clk_14mhz,
+	I_ADDR		=> spi_a,
+	I_DATA		=> spi_di_bus,
+	O_DATA		=> spi_do_bus,
+	I_WR		=> spi_wr,
+	O_BUSY		=> spi_busy,
+	O_CS_n		=> spi_cs_n,
+	O_SCLK		=> spi_clk,
+	O_MOSI		=> spi_si,
+	I_MISO		=> spi_so);
 	
 -- SDRAM Controller
 U9: entity work.sdram
 port map (
-	RST_I		=> areset,
-	CLK_I		=> clk_84mhz,
-	ENA_O		=> cpu_ena,
+	I_RESET		=> areset,
+	I_CLK		=> clk_84mhz,
+	O_ENA		=> cpu_ena,
 	-- Channal 0
-	CH0_ADR_I	=> zx0_ram_a & zx0_cpu_a(12 downto 0),
-	CH0_DAT_I	=> zx0_cpu_do,
-	CH0_DAT_O	=> zx0_ram_di,
-	CH0_WR_I	=> zx0_ram_wr,
-	CH0_RD_I	=> zx0_ram_rd,
-	CH0_RFSH_I	=> zx0_cpu_rfsh,
-	CH0_DMA_ADR_I	=> '0' & dmasound_mem_adr,
-	CH0_DMA_RD_I	=> dmasound_mem_rd,
-	CH0_DMA_ACK_O	=> dmasound_mem_ack,
+	I_CH0_ADDR	=> zx0_ram_a & zx0_cpu_a(12 downto 0),
+	I_CH0_DATA	=> zx0_cpu_do,
+	O_CH0_DATA	=> zx0_ram_di,
+	I_CH0_WR	=> zx0_ram_wr,
+	I_CH0_RD	=> zx0_ram_rd,
+	I_CH0_RFSH	=> zx0_cpu_rfsh,
+	I_CH0_DMA_ADDR	=> '0' & dmasound_mem_adr,
+	I_CH0_DMA_RD	=> dmasound_mem_rd,
+	O_CH0_DMA_ACK	=> dmasound_mem_ack,
 	-- Channal 1
-	CH1_ADR_I	=> zx1_ram_a & zx1_cpu_a(12 downto 0),
-	CH1_DAT_I	=> zx1_cpu_do,
-	CH1_DAT_O	=> zx1_ram_di,
-	CH1_WR_I	=> zx1_ram_wr,
-	CH1_RD_I	=> zx1_ram_rd,
-	CH1_RFSH_I	=> zx1_cpu_rfsh,
+	I_CH1_ADDR	=> zx1_ram_a & zx1_cpu_a(12 downto 0),
+	I_CH1_DATA	=> zx1_cpu_do,
+	O_CH1_DATA	=> zx1_ram_di,
+	I_CH1_WR	=> zx1_ram_wr,
+	I_CH1_RD	=> zx1_ram_rd,
+	I_CH1_RFSH	=> zx1_cpu_rfsh,
 	-- Channal 2
-	CH2_ADR_I	=> zx2_ram_a & zx2_cpu_a(12 downto 0),
-	CH2_DAT_I	=> zx2_cpu_do,
-	CH2_DAT_O	=> zx2_ram_di,
-	CH2_WR_I	=> zx2_ram_wr,
-	CH2_RD_I	=> zx2_ram_rd,
-	CH2_RFSH_I	=> zx2_cpu_rfsh,
+	I_CH2_ADDR	=> zx2_ram_a & zx2_cpu_a(12 downto 0),
+	I_CH2_DATA	=> zx2_cpu_do,
+	O_CH2_DATA	=> zx2_ram_di,
+	I_CH2_WR	=> zx2_ram_wr,
+	I_CH2_RD	=> zx2_ram_rd,
+	I_CH2_RFSH	=> zx2_cpu_rfsh,
 	-- Channal 3
-	CH3_ADR_I	=> zx3_ram_a & zx3_cpu_a(12 downto 0),
-	CH3_DAT_I	=> zx3_cpu_do,
-	CH3_DAT_O	=> zx3_ram_di,
-	CH3_WR_I	=> zx3_ram_wr,
-	CH3_RD_I	=> zx3_ram_rd,
-	CH3_RFSH_I	=> zx3_cpu_rfsh,
+	I_CH3_ADDR	=> zx3_ram_a & zx3_cpu_a(12 downto 0),
+	I_CH3_DATA	=> zx3_cpu_do,
+	O_CH3_DATA	=> zx3_ram_di,
+	I_CH3_WR	=> zx3_ram_wr,
+	I_CH3_RD	=> zx3_ram_rd,
+	I_CH3_RFSH	=> zx3_cpu_rfsh,
 	-- SDRAM Pin
-	CK		=> open,
-	RAS_n		=> SDRAM_RAS_n,
-	CAS_n		=> SDRAM_CAS_n,
-	WE_n		=> SDRAM_WE_n,
-	DQML		=> SDRAM_DQML,
-	DQMH		=> SDRAM_DQMH,
-	BA		=> SDRAM_BA,
-	MA		=> SDRAM_A,
-	DQ		=> SDRAM_D);
+	O_CLK		=> open,
+	O_RAS_N		=> DRAM_NRAS,
+	O_CAS_N		=> DRAM_NCAS,
+	O_WE_N		=> DRAM_NWE,
+	O_DQML		=> DRAM_DQML,
+	O_DQMH		=> DRAM_DQMH,
+	O_BA		=> DRAM_BA,
+	O_MA		=> DRAM_A,
+	IO_DQ		=> DRAM_DQ);
 
 -- I2C Controller
 U10: entity work.i2c
 port map (
-	RESET		=> reset,
-	CLK		=> clk_28mhz,
-	ENA		=> ena_0_4375mhz,
-	A		=> i2c_a,
-	DI		=> i2c_di_bus,
-	DO		=> i2c_do_bus,
-	WR		=> i2c_wr,
-	I2C_SCL		=> SCL,
-	I2C_SDA		=> SDA);
+	I_RESET		=> reset,
+	I_CLK		=> clk_28mhz,
+	I_ENA		=> ena_0_4375mhz,
+	I_ADDR		=> i2c_a,
+	I_DATA		=> i2c_di_bus,
+	O_DATA		=> i2c_do_bus,
+	I_WR		=> i2c_wr,
+	IO_I2C_SCL	=> I2C_SCL,
+	IO_I2C_SDA	=> I2C_SDA);
 
 -- Delta-Sigma
 U11: entity work.dac
 generic map (
 	msbi_g		=> 18)
 port map (
-	CLK   		=> clk_84mhz,
-	RESET 		=> areset,
-	DAC_DATA	=> audio_l,
-	DAC_OUT		=> dac_out_l);
+	I_CLK  		=> clk_84mhz,
+	I_RESET		=> areset,
+	I_DATA		=> audio_l,
+	O_DAC		=> DP);
 
 -- Delta-Sigma
 U12: entity work.dac
 generic map (
 	msbi_g		=> 18)
 port map (
-	CLK   		=> clk_84mhz,
-	RESET 		=> areset,
-	DAC_DATA	=> audio_r,
-	DAC_OUT   	=> dac_out_r);
+	I_CLK  		=> clk_84mhz,
+	I_RESET 	=> areset,
+	I_DATA		=> audio_r,
+	O_DAC   	=> DN);
 
 -- CPU0
 U13: entity work.zx
@@ -618,75 +650,80 @@ generic map (
 	Loader		=> '1',
 	CPU		=> "00" )
 port map (
-	RST_I		=> reset,
-	CLK_I		=> clk_28mhz,
-	SEL_I		=> zx0_sel,
-	ENA_1_75MHZ_I	=> ena_1_75mhz,
-	ENA_0_4375MHZ_I	=> ena_0_4375mhz,
+	I_RESET		=> reset,
+	I_CLK		=> clk_28mhz,
+	I_SEL		=> zx0_sel,
+	I_ENA_1_75MHZ	=> ena_1_75mhz,
+	I_ENA_0_4375MHZ	=> ena_0_4375mhz,
 	-- CPU
-	CPU_DAT_O	=> zx0_cpu_do,
-	CPU_ADR_O	=> zx0_cpu_a,
-	CPU_INT_I	=> zx0_cpu_int,
-	CPU_CLK_I	=> clk_84mhz,
-	CPU_ENA_I	=> cpu_ena,
-	CPU_RFSH_O	=> zx0_cpu_rfsh,
-	CPU_RDn_O	=> zx0_cpu_rd_n,
-	CPU_WRn_O	=> zx0_cpu_wr_n,
-	CPU_IORQn_O	=> zx0_cpu_iorq_n,
-	CPU_INTA_O	=> zx0_cpu_inta,
+	O_CPU_DATA	=> zx0_cpu_do,
+	O_CPU_ADDR	=> zx0_cpu_a,
+	I_CPU_INT	=> zx0_cpu_int,
+	I_CPU_CLK	=> clk_84mhz,
+	I_CPU_ENA	=> cpu_ena,
+	O_CPU_RFSH	=> zx0_cpu_rfsh,
+	O_CPU_RD_N	=> zx0_cpu_rd_n,
+	O_CPU_WR_N	=> zx0_cpu_wr_n,
+	O_CPU_IORQ_N	=> zx0_cpu_iorq_n,
+	O_CPU_INTA	=> zx0_cpu_inta,
 	-- ROM
-	ROM_DAT_I	=> rom_do,
+	I_ROM_DATA	=> rom_do,
 	-- RAM
-	RAM_ADR_O	=> zx0_ram_a,
-	RAM_DAT_I	=> zx0_ram_di,
-	RAM_WR_O	=> zx0_ram_wr,
-	RAM_RD_O	=> zx0_ram_rd,
+	O_RAM_ADDR	=> zx0_ram_a,
+	I_RAM_DATA	=> zx0_ram_di,
+	O_RAM_WR	=> zx0_ram_wr,
+	O_RAM_RD	=> zx0_ram_rd,
 	-- Video
-	VIDEO_CLK_I	=> clk_vga,
-	VIDEO_ADR_I	=> zx0_video_a,
-	VIDEO_DAT_O	=> zx0_video_do,
-	VIDEO_ATTR_I	=> zx0_video_attr,
-	VIDEO_BORDER_I	=> zx0_video_border,
+	I_VIDEO_CLK	=> clk_vga,
+	I_VIDEO_ADDR	=> zx0_video_a,
+	O_VIDEO_DATA	=> zx0_video_do,
+	I_VIDEO_ATTR	=> zx0_video_attr,
+	I_VIDEO_BORDER	=> zx0_video_border,
 	-- Port
-	PORT_XXFE_O	=> zx0_port_xxfe,
-	PORT_0001_O	=> zx0_port_0001,
+	O_PORT_XXFE	=> zx0_port_xxfe,
+	O_PORT_0001	=> zx0_port_0001,
 	-- Keyboard
-	KEYBOARD_DAT_I	=> kb_do_bus,
-	KEYBOARD_FN_I	=> kb_fn_bus,
-	KEYBOARD_JOY_I	=> kb_joy_bus,
-	KEYBOARD_SOFT_I	=> kb_soft_bus,
+	I_KEYBOARD_DATA	=> kb_do_bus,
+	I_KEYBOARD_FN	=> kb_fn_bus,
+	I_KEYBOARD_JOY	=> kb_joy_bus,
+	I_KEYBOARD_SOFT	=> kb_soft_bus,
+	-- Mouse
+	I_MOUSE_X	=> ms_x,
+	I_MOUSE_Y	=> ms_y,
+	I_MOUSE_Z	=> ms_z(3 downto 0),
+	I_MOUSE_BUTTONS	=> ms_b(2 downto 0),
 	-- Z Controller
-	ZC_DAT_I	=> zc_do_bus,
-	ZC_RD_O		=> zx0_zc_rd,
-	ZC_WR_O		=> zx0_zc_wr,
+	I_ZC_DATA	=> zc_do_bus,
+	O_ZC_RD		=> zx0_zc_rd,
+	O_ZC_WR		=> zx0_zc_wr,
 	-- SPI Controller
-	SPI_DAT_I	=> spi_do_bus,
-	SPI_WR_O	=> zx0_spi_wr,
-	SPI_BUSY	=> spi_busy,
+	I_SPI_DATA	=> spi_do_bus,
+	O_SPI_WR	=> zx0_spi_wr,
+	I_SPI_BUSY	=> spi_busy,
 	-- I2C Controller
-	I2C_DAT_I	=> i2c_do_bus,
-	I2C_WR_O	=> zx0_i2c_wr,
+	I_I2C_DATA	=> i2c_do_bus,
+	O_I2C_WR	=> zx0_i2c_wr,
 	-- DivMMC
-	DIVMMC_SC_O	=> zx0_divmmc_cs,
-	DIVMMC_SCLK_O	=> zx0_divmmc_sclk,
-	DIVMMC_MOSI_O	=> zx0_divmmc_mosi,
-	DIVMMC_MISO_I	=> SD_SO,
-	DIVMMC_SEL_O	=> zx0_divmmc_sel,
+	O_DIVMMC_SC	=> zx0_divmmc_cs,
+	O_DIVMMC_SCLK	=> zx0_divmmc_sclk,
+	O_DIVMMC_MOSI	=> zx0_divmmc_mosi,
+	I_DIVMMC_MISO	=> SD_SO,
+	O_DIVMMC_SEL	=> zx0_divmmc_sel,
 	-- TurboSound
-	SSG0_A_O	=> zx0_ssg0_a,
-	SSG0_B_O	=> zx0_ssg0_b,
-	SSG0_C_O	=> zx0_ssg0_c,
-	SSG1_A_O	=> zx0_ssg1_a,
-	SSG1_B_O	=> zx0_ssg1_b,
-	SSG1_C_O	=> zx0_ssg1_c,
+	O_SSG0_A	=> zx0_ssg0_a,
+	O_SSG0_B	=> zx0_ssg0_b,
+	O_SSG0_C	=> zx0_ssg0_c,
+	O_SSG1_A	=> zx0_ssg1_a,
+	O_SSG1_B	=> zx0_ssg1_b,
+	O_SSG1_C	=> zx0_ssg1_c,
 	-- SounDrive
-	COVOX_A_O	=> zx0_covox_a,
-	COVOX_B_O	=> zx0_covox_b,
-	COVOX_C_O	=> zx0_covox_c,
-	COVOX_D_O	=> zx0_covox_d,    
+	O_COVOX_A	=> zx0_covox_a,
+	O_COVOX_B	=> zx0_covox_b,
+	O_COVOX_C	=> zx0_covox_c,
+	O_COVOX_D	=> zx0_covox_d,    
 	-- DMA Sound
-	DMASOUND_DAT_I	=> dmasound_do,
-	DMASOUND_INT_I	=> dmasound_int);
+	I_DMASOUND_DATA	=> dmasound_do,
+	I_DMASOUND_INT	=> dmasound_int);
 
 -- CPU1
 U14: entity work.zx
@@ -694,75 +731,80 @@ generic map (
 	Loader		=> '0',
 	CPU		=> "01" )
 port map (
-	RST_I		=> reset,
-	CLK_I		=> clk_28mhz,
-	SEL_I		=> zx1_sel,
-	ENA_1_75MHZ_I	=> ena_1_75mhz,
-	ENA_0_4375MHZ_I	=> ena_0_4375mhz,
+	I_RESET		=> reset,
+	I_CLK		=> clk_28mhz,
+	I_SEL		=> zx1_sel,
+	I_ENA_1_75MHZ	=> ena_1_75mhz,
+	I_ENA_0_4375MHZ	=> ena_0_4375mhz,
 	-- CPU
-	CPU_DAT_O	=> zx1_cpu_do,
-	CPU_ADR_O	=> zx1_cpu_a,
-	CPU_INT_I	=> zx1_cpu_int,
-	CPU_CLK_I	=> clk_84mhz,
-	CPU_ENA_I	=> cpu_ena,
-	CPU_RFSH_O	=> zx1_cpu_rfsh,
-	CPU_RDn_O	=> open,
-	CPU_WRn_O	=> open,
-	CPU_IORQn_O	=> open,
-	CPU_INTA_O	=> open,
+	O_CPU_DATA	=> zx1_cpu_do,
+	O_CPU_ADDR	=> zx1_cpu_a,
+	I_CPU_INT	=> zx1_cpu_int,
+	I_CPU_CLK	=> clk_84mhz,
+	I_CPU_ENA	=> cpu_ena,
+	O_CPU_RFSH	=> zx1_cpu_rfsh,
+	O_CPU_RD_N	=> open,
+	O_CPU_WR_N	=> open,
+	O_CPU_IORQ_N	=> open,
+	O_CPU_INTA	=> open,
 	-- ROM
-	ROM_DAT_I	=> (others => '1'),
+	I_ROM_DATA	=> (others => '1'),
 	-- RAM
-	RAM_ADR_O	=> zx1_ram_a,
-	RAM_DAT_I	=> zx1_ram_di,
-	RAM_WR_O	=> zx1_ram_wr,
-	RAM_RD_O	=> zx1_ram_rd,
+	O_RAM_ADDR	=> zx1_ram_a,
+	I_RAM_DATA	=> zx1_ram_di,
+	O_RAM_WR	=> zx1_ram_wr,
+	O_RAM_RD	=> zx1_ram_rd,
 	-- Video
-	VIDEO_CLK_I	=> clk_vga,
-	VIDEO_ADR_I	=> zx1_video_a,
-	VIDEO_DAT_O	=> zx1_video_do,
-	VIDEO_ATTR_I	=> zx1_video_attr,
-	VIDEO_BORDER_I	=> zx1_video_border,
+	I_VIDEO_CLK	=> clk_vga,
+	I_VIDEO_ADDR	=> zx1_video_a,
+	O_VIDEO_DATA	=> zx1_video_do,
+	I_VIDEO_ATTR	=> zx1_video_attr,
+	I_VIDEO_BORDER	=> zx1_video_border,
 	-- Port
-	PORT_XXFE_O	=> zx1_port_xxfe,
-	PORT_0001_O	=> zx1_port_0001,
+	O_PORT_XXFE	=> zx1_port_xxfe,
+	O_PORT_0001	=> zx1_port_0001,
 	-- Keyboard
-	KEYBOARD_DAT_I	=> kb_do_bus,
-	KEYBOARD_FN_I	=> kb_fn_bus,
-	KEYBOARD_JOY_I	=> kb_joy_bus,
-	KEYBOARD_SOFT_I	=> kb_soft_bus,
+	I_KEYBOARD_DATA	=> kb_do_bus,
+	I_KEYBOARD_FN	=> kb_fn_bus,
+	I_KEYBOARD_JOY	=> kb_joy_bus,
+	I_KEYBOARD_SOFT	=> kb_soft_bus,
+	-- Mouse
+	I_MOUSE_X	=> ms_x,
+	I_MOUSE_Y	=> ms_y,
+	I_MOUSE_Z	=> ms_z(3 downto 0),
+	I_MOUSE_BUTTONS	=> ms_b(2 downto 0),
 	-- Z Controller
-	ZC_DAT_I	=> zc_do_bus,
-	ZC_RD_O		=> zx1_zc_rd,
-	ZC_WR_O		=> zx1_zc_wr,
+	I_ZC_DATA	=> zc_do_bus,
+	O_ZC_RD		=> zx1_zc_rd,
+	O_ZC_WR		=> zx1_zc_wr,
 	-- SPI Controller
-	SPI_DAT_I	=> spi_do_bus,
-	SPI_WR_O	=> zx1_spi_wr,
-	SPI_BUSY	=> spi_busy,
+	I_SPI_DATA	=> spi_do_bus,
+	O_SPI_WR	=> zx1_spi_wr,
+	I_SPI_BUSY	=> spi_busy,
 	-- I2C Controller
-	I2C_DAT_I	=> i2c_do_bus,
-	I2C_WR_O	=> zx1_i2c_wr,
+	I_I2C_DATA	=> i2c_do_bus,
+	O_I2C_WR	=> zx1_i2c_wr,
 	-- DivMMC
-	DIVMMC_SC_O	=> zx1_divmmc_cs,
-	DIVMMC_SCLK_O	=> zx1_divmmc_sclk,
-	DIVMMC_MOSI_O	=> zx1_divmmc_mosi,
-	DIVMMC_MISO_I	=> SD_SO,
-	DIVMMC_SEL_O	=> zx1_divmmc_sel,
+	O_DIVMMC_SC	=> zx1_divmmc_cs,
+	O_DIVMMC_SCLK	=> zx1_divmmc_sclk,
+	O_DIVMMC_MOSI	=> zx1_divmmc_mosi,
+	I_DIVMMC_MISO	=> SD_SO,
+	O_DIVMMC_SEL	=> zx1_divmmc_sel,
 	-- TurboSound
-	SSG0_A_O	=> zx1_ssg0_a,
-	SSG0_B_O	=> zx1_ssg0_b,
-	SSG0_C_O	=> zx1_ssg0_c,
-	SSG1_A_O	=> zx1_ssg1_a,
-	SSG1_B_O	=> zx1_ssg1_b,
-	SSG1_C_O	=> zx1_ssg1_c,
+	O_SSG0_A	=> zx1_ssg0_a,
+	O_SSG0_B	=> zx1_ssg0_b,
+	O_SSG0_C	=> zx1_ssg0_c,
+	O_SSG1_A	=> zx1_ssg1_a,
+	O_SSG1_B	=> zx1_ssg1_b,
+	O_SSG1_C	=> zx1_ssg1_c,
 	-- SounDrive
-	COVOX_A_O	=> zx1_covox_a,
-	COVOX_B_O	=> zx1_covox_b,
-	COVOX_C_O	=> zx1_covox_c,
-	COVOX_D_O	=> zx1_covox_d,
+	O_COVOX_A	=> zx1_covox_a,
+	O_COVOX_B	=> zx1_covox_b,
+	O_COVOX_C	=> zx1_covox_c,
+	O_COVOX_D	=> zx1_covox_d,
 	-- DMA Sound
-	DMASOUND_DAT_I	=> (others => '1'),
-	DMASOUND_INT_I	=> '0' );
+	I_DMASOUND_DATA	=> (others => '1'),
+	I_DMASOUND_INT	=> '0' );
 
 -- CPU2
 U15: entity work.zx
@@ -770,75 +812,80 @@ generic map (
 	Loader		=> '0',
 	CPU		=> "10" )
 port map (
-	RST_I		=> reset,
-	CLK_I		=> clk_28mhz,
-	SEL_I		=> zx2_sel,
-	ENA_1_75MHZ_I	=> ena_1_75mhz,
-	ENA_0_4375MHZ_I	=> ena_0_4375mhz,
+	I_RESET		=> reset,
+	I_CLK		=> clk_28mhz,
+	I_SEL		=> zx2_sel,
+	I_ENA_1_75MHZ	=> ena_1_75mhz,
+	I_ENA_0_4375MHZ	=> ena_0_4375mhz,
 	-- CPU
-	CPU_DAT_O	=> zx2_cpu_do,
-	CPU_ADR_O	=> zx2_cpu_a,
-	CPU_INT_I	=> zx2_cpu_int,
-	CPU_CLK_I	=> clk_84mhz,
-	CPU_ENA_I	=> cpu_ena,
-	CPU_RFSH_O	=> zx2_cpu_rfsh,
-	CPU_RDn_O	=> open,
-	CPU_WRn_O	=> open,
-	CPU_IORQn_O	=> open,
-	CPU_INTA_O	=> open,
+	O_CPU_DATA	=> zx2_cpu_do,
+	O_CPU_ADDR	=> zx2_cpu_a,
+	I_CPU_INT	=> zx2_cpu_int,
+	I_CPU_CLK	=> clk_84mhz,
+	I_CPU_ENA	=> cpu_ena,
+	O_CPU_RFSH	=> zx2_cpu_rfsh,
+	O_CPU_RD_N	=> open,
+	O_CPU_WR_N	=> open,
+	O_CPU_IORQ_N	=> open,
+	O_CPU_INTA	=> open,
 	-- ROM
-	ROM_DAT_I	=> (others => '1'),
+	I_ROM_DATA	=> (others => '1'),
 	-- RAM
-	RAM_ADR_O	=> zx2_ram_a,
-	RAM_DAT_I	=> zx2_ram_di,
-	RAM_WR_O	=> zx2_ram_wr,
-	RAM_RD_O	=> zx2_ram_rd,
+	O_RAM_ADDR	=> zx2_ram_a,
+	I_RAM_DATA	=> zx2_ram_di,
+	O_RAM_WR	=> zx2_ram_wr,
+	O_RAM_RD	=> zx2_ram_rd,
 	-- Video
-	VIDEO_CLK_I	=> clk_vga,
-	VIDEO_ADR_I	=> zx2_video_a,
-	VIDEO_DAT_O	=> zx2_video_do,
-	VIDEO_ATTR_I	=> zx2_video_attr,
-	VIDEO_BORDER_I	=> zx2_video_border,
+	I_VIDEO_CLK	=> clk_vga,
+	I_VIDEO_ADDR	=> zx2_video_a,
+	O_VIDEO_DATA	=> zx2_video_do,
+	I_VIDEO_ATTR	=> zx2_video_attr,
+	I_VIDEO_BORDER	=> zx2_video_border,
 	-- Port
-	PORT_XXFE_O	=> zx2_port_xxfe,
-	PORT_0001_O	=> zx2_port_0001,
+	O_PORT_XXFE	=> zx2_port_xxfe,
+	O_PORT_0001	=> zx2_port_0001,
 	-- Keyboard
-	KEYBOARD_DAT_I	=> kb_do_bus,
-	KEYBOARD_FN_I	=> kb_fn_bus,
-	KEYBOARD_JOY_I	=> kb_joy_bus,
-	KEYBOARD_SOFT_I	=> kb_soft_bus,
+	I_KEYBOARD_DATA	=> kb_do_bus,
+	I_KEYBOARD_FN	=> kb_fn_bus,
+	I_KEYBOARD_JOY	=> kb_joy_bus,
+	I_KEYBOARD_SOFT	=> kb_soft_bus,
+	-- Mouse
+	I_MOUSE_X	=> ms_x,
+	I_MOUSE_Y	=> ms_y,
+	I_MOUSE_Z	=> ms_z(3 downto 0),
+	I_MOUSE_BUTTONS	=> ms_b(2 downto 0),
 	-- Z Controller
-	ZC_DAT_I	=> zc_do_bus,
-	ZC_RD_O		=> zx2_zc_rd,
-	ZC_WR_O		=> zx2_zc_wr,
+	I_ZC_DATA	=> zc_do_bus,
+	O_ZC_RD		=> zx2_zc_rd,
+	O_ZC_WR		=> zx2_zc_wr,
 	-- SPI Controller
-	SPI_DAT_I	=> spi_do_bus,
-	SPI_WR_O	=> zx2_spi_wr,
-	SPI_BUSY	=> spi_busy,
+	I_SPI_DATA	=> spi_do_bus,
+	O_SPI_WR	=> zx2_spi_wr,
+	I_SPI_BUSY	=> spi_busy,
 	-- I2C Controller
-	I2C_DAT_I	=> i2c_do_bus,
-	I2C_WR_O	=> zx2_i2c_wr,
+	I_I2C_DATA	=> i2c_do_bus,
+	O_I2C_WR	=> zx2_i2c_wr,
 	-- DivMMC
-	DIVMMC_SC_O	=> zx2_divmmc_cs,
-	DIVMMC_SCLK_O	=> zx2_divmmc_sclk,
-	DIVMMC_MOSI_O	=> zx2_divmmc_mosi,
-	DIVMMC_MISO_I	=> SD_SO,
-	DIVMMC_SEL_O	=> zx2_divmmc_sel,
+	O_DIVMMC_SC	=> zx2_divmmc_cs,
+	O_DIVMMC_SCLK	=> zx2_divmmc_sclk,
+	O_DIVMMC_MOSI	=> zx2_divmmc_mosi,
+	I_DIVMMC_MISO	=> SD_SO,
+	O_DIVMMC_SEL	=> zx2_divmmc_sel,
 	-- TurboSound
-	SSG0_A_O	=> zx2_ssg0_a,
-	SSG0_B_O	=> zx2_ssg0_b,
-	SSG0_C_O	=> zx2_ssg0_c,
-	SSG1_A_O	=> zx2_ssg1_a,
-	SSG1_B_O	=> zx2_ssg1_b,
-	SSG1_C_O	=> zx2_ssg1_c,
+	O_SSG0_A	=> zx2_ssg0_a,
+	O_SSG0_B	=> zx2_ssg0_b,
+	O_SSG0_C	=> zx2_ssg0_c,
+	O_SSG1_A	=> zx2_ssg1_a,
+	O_SSG1_B	=> zx2_ssg1_b,
+	O_SSG1_C	=> zx2_ssg1_c,
 	-- SounDrive
-	COVOX_A_O	=> zx2_covox_a,
-	COVOX_B_O	=> zx2_covox_b,
-	COVOX_C_O	=> zx2_covox_c,
-	COVOX_D_O	=> zx2_covox_d,
+	O_COVOX_A	=> zx2_covox_a,
+	O_COVOX_B	=> zx2_covox_b,
+	O_COVOX_C	=> zx2_covox_c,
+	O_COVOX_D	=> zx2_covox_d,
 	-- DMA Sound
-	DMASOUND_DAT_I	=> (others => '1'),
-	DMASOUND_INT_I	=> '0' );
+	I_DMASOUND_DATA	=> (others => '1'),
+	I_DMASOUND_INT	=> '0' );
 
 -- CPU3
 U16: entity work.zx
@@ -846,75 +893,80 @@ generic map (
 	Loader		=> '0',
 	CPU		=> "11" )
 port map (
-	RST_I		=> reset,
-	CLK_I		=> clk_28mhz,
-	SEL_I		=> zx3_sel,
-	ENA_1_75MHZ_I	=> ena_1_75mhz,
-	ENA_0_4375MHZ_I	=> ena_0_4375mhz,
+	I_RESET		=> reset,
+	I_CLK		=> clk_28mhz,
+	I_SEL		=> zx3_sel,
+	I_ENA_1_75MHZ	=> ena_1_75mhz,
+	I_ENA_0_4375MHZ	=> ena_0_4375mhz,
 	-- CPU
-	CPU_DAT_O	=> zx3_cpu_do,
-	CPU_ADR_O	=> zx3_cpu_a,
-	CPU_INT_I	=> zx3_cpu_int,
-	CPU_CLK_I	=> clk_84mhz,
-	CPU_ENA_I	=> cpu_ena,
-	CPU_RFSH_O	=> zx3_cpu_rfsh,
-	CPU_RDn_O	=> open,
-	CPU_WRn_O	=> open,
-	CPU_IORQn_O	=> open,
-	CPU_INTA_O	=> open,
+	O_CPU_DATA	=> zx3_cpu_do,
+	O_CPU_ADDR	=> zx3_cpu_a,
+	I_CPU_INT	=> zx3_cpu_int,
+	I_CPU_CLK	=> clk_84mhz,
+	I_CPU_ENA	=> cpu_ena,
+	O_CPU_RFSH	=> zx3_cpu_rfsh,
+	O_CPU_RD_N	=> open,
+	O_CPU_WR_N	=> open,
+	O_CPU_IORQ_N	=> open,
+	O_CPU_INTA	=> open,
 	-- ROM
-	ROM_DAT_I	=> (others => '1'),
+	I_ROM_DATA	=> (others => '1'),
 	-- RAM
-	RAM_ADR_O	=> zx3_ram_a,
-	RAM_DAT_I	=> zx3_ram_di,
-	RAM_WR_O	=> zx3_ram_wr,
-	RAM_RD_O	=> zx3_ram_rd,
+	O_RAM_ADDR	=> zx3_ram_a,
+	I_RAM_DATA	=> zx3_ram_di,
+	O_RAM_WR	=> zx3_ram_wr,
+	O_RAM_RD	=> zx3_ram_rd,
 	-- Video
-	VIDEO_CLK_I	=> clk_vga,
-	VIDEO_ADR_I	=> zx3_video_a,
-	VIDEO_DAT_O	=> zx3_video_do,
-	VIDEO_ATTR_I	=> zx3_video_attr,
-	VIDEO_BORDER_I	=> zx3_video_border,
+	I_VIDEO_CLK	=> clk_vga,
+	I_VIDEO_ADDR	=> zx3_video_a,
+	O_VIDEO_DATA	=> zx3_video_do,
+	I_VIDEO_ATTR	=> zx3_video_attr,
+	I_VIDEO_BORDER	=> zx3_video_border,
 	-- Port
-	PORT_XXFE_O	=> zx3_port_xxfe,
-	PORT_0001_O	=> zx3_port_0001,
+	O_PORT_XXFE	=> zx3_port_xxfe,
+	O_PORT_0001	=> zx3_port_0001,
 	-- Keyboard
-	KEYBOARD_DAT_I	=> kb_do_bus,
-	KEYBOARD_FN_I	=> kb_fn_bus,
-	KEYBOARD_JOY_I	=> kb_joy_bus,
-	KEYBOARD_SOFT_I	=> kb_soft_bus,
+	I_KEYBOARD_DATA	=> kb_do_bus,
+	I_KEYBOARD_FN	=> kb_fn_bus,
+	I_KEYBOARD_JOY	=> kb_joy_bus,
+	I_KEYBOARD_SOFT	=> kb_soft_bus,
+	-- Mouse
+	I_MOUSE_X	=> ms_x,
+	I_MOUSE_Y	=> ms_y,
+	I_MOUSE_Z	=> ms_z(3 downto 0),
+	I_MOUSE_BUTTONS	=> ms_b(2 downto 0),
 	-- Z Controller
-	ZC_DAT_I	=> zc_do_bus,
-	ZC_RD_O		=> zx3_zc_rd,
-	ZC_WR_O		=> zx3_zc_wr,
+	I_ZC_DATA	=> zc_do_bus,
+	O_ZC_RD		=> zx3_zc_rd,
+	O_ZC_WR		=> zx3_zc_wr,
 	-- SPI Controller
-	SPI_DAT_I	=> spi_do_bus,
-	SPI_WR_O	=> zx3_spi_wr,
-	SPI_BUSY	=> spi_busy,
+	I_SPI_DATA	=> spi_do_bus,
+	O_SPI_WR	=> zx3_spi_wr,
+	I_SPI_BUSY	=> spi_busy,
 	-- I2C Controller
-	I2C_DAT_I	=> i2c_do_bus,
-	I2C_WR_O	=> zx3_i2c_wr,
+	I_I2C_DATA	=> i2c_do_bus,
+	O_I2C_WR	=> zx3_i2c_wr,
 	-- DivMMC
-	DIVMMC_SC_O	=> zx3_divmmc_cs,
-	DIVMMC_SCLK_O	=> zx3_divmmc_sclk,
-	DIVMMC_MOSI_O	=> zx3_divmmc_mosi,
-	DIVMMC_MISO_I	=> SD_SO,
-	DIVMMC_SEL_O	=> zx3_divmmc_sel,
+	O_DIVMMC_SC	=> zx3_divmmc_cs,
+	O_DIVMMC_SCLK	=> zx3_divmmc_sclk,
+	O_DIVMMC_MOSI	=> zx3_divmmc_mosi,
+	I_DIVMMC_MISO	=> SD_SO,
+	O_DIVMMC_SEL	=> zx3_divmmc_sel,
 	-- TurboSound
-	SSG0_A_O	=> zx3_ssg0_a,
-	SSG0_B_O	=> zx3_ssg0_b,
-	SSG0_C_O	=> zx3_ssg0_c,
-	SSG1_A_O	=> zx3_ssg1_a,
-	SSG1_B_O	=> zx3_ssg1_b,
-	SSG1_C_O	=> zx3_ssg1_c,
+	O_SSG0_A	=> zx3_ssg0_a,
+	O_SSG0_B	=> zx3_ssg0_b,
+	O_SSG0_C	=> zx3_ssg0_c,
+	O_SSG1_A	=> zx3_ssg1_a,
+	O_SSG1_B	=> zx3_ssg1_b,
+	O_SSG1_C	=> zx3_ssg1_c,
 	-- SounDrive
-	COVOX_A_O	=> zx3_covox_a,
-	COVOX_B_O	=> zx3_covox_b,
-	COVOX_C_O	=> zx3_covox_c,
-	COVOX_D_O	=> zx3_covox_d,
+	O_COVOX_A	=> zx3_covox_a,
+	O_COVOX_B	=> zx3_covox_b,
+	O_COVOX_C	=> zx3_covox_c,
+	O_COVOX_D	=> zx3_covox_d,
 	-- DMA Sound
-	DMASOUND_DAT_I	=> (others => '1'),
-	DMASOUND_INT_I	=> '0' );
+	I_DMASOUND_DATA	=> (others => '1'),
+	I_DMASOUND_INT	=> '0' );
  
 -------------------------------------------------------------------------------
 -- Формирование глобальных сигналов
@@ -998,10 +1050,10 @@ audio_r <= ("000" & fx_sum & "0000000000000") + ("00" & sum_right & "00000") + (
 
 
 -------------------------------------------------------------------------------
-areset <= not RST_n;
+areset <= not USB_NRESET;
 reset <= areset or kb_soft_bus(0) or not locked0 or not locked1;	-- ZX_RESET
 -- SD Card					
-SD_CS_n	<= divmmc_cs_n when divmmc_sel = '1' else zc_cs_n;
+SD_NCS	<= divmmc_cs_n when divmmc_sel = '1' else zc_cs_n;
 SD_CLK 	<= divmmc_sclk when divmmc_sel = '1' else zc_sclk;
 SD_SI 	<= divmmc_mosi when divmmc_sel = '1' else zc_mosi;
 
@@ -1146,6 +1198,8 @@ begin
 	end case;
 end process;
 	
-HDMI_D1_n <= '0';
+HDMI_D1N 	<= '0';
+USB_NCS		<= '0';
+
 	
 end rtl;

@@ -1,6 +1,6 @@
  		DEVICE	ZXSPECTRUM48
-; -----------------------------------------------------------------[03.03.2015]
-; ReVerSE-U16 Loader Version 1.0 By MVV
+; -----------------------------------------------------------------[11.09.2015]
+; ReVerSE-U16 Loader rev.20150910 By MVV
 ; -----------------------------------------------------------------------------
 ; V0.1	 05.11.2011	первая версия
 ; V0.5	 09.11.2011	добавил SPI загрузчик и GS, VS1053
@@ -577,8 +577,8 @@ Port_out
 str1	
 ;          "                                "
 	db 23,0,0,17,#47,"ReVerSE-U16 DevBoard",17,7,13,13
-	db "FPGA SoftCore - Quad Speccy v2.4"
-	db "(build 20150320) By MVV",13,13
+	db "FPGA SoftCore - Quad Speccy",13
+	db "(build 20150911) By MVV",13,13
 	db "Copying data from FLASH...",0
 str3
 	db 17,4," done",17,7,13,0
@@ -586,7 +586,7 @@ str4
 	db 13,"RTC data read...",0
 str0
 ;          "                                "
-	db 13,13,"CPU0 ",17,4,"3.5 MHz",17,7,", Memory ",17,4,"4096 KB",17,7
+	db 13,13,"Quad Z80CPU@3.5MHz, Memory 16MB"
 	db 13,13,"F1..F4: Window Select",13
 	db "    F5: NMI Button",13
 	db "    F6: DivMMC 512KB/ZController"

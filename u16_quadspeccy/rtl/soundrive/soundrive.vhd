@@ -1,4 +1,4 @@
--------------------------------------------------------------------[27.10.2011]
+-------------------------------------------------------------------[11.09.2015]
 -- Soundrive 1.05
 -------------------------------------------------------------------------------
 -- Engineer: 	MVV
@@ -6,7 +6,7 @@
 -- 05.10.2011	Initial
 
 -- SOUNDRIVE 1.05 PORTS mode 1
--- #0F = left channel A (stereo covox channel 1)
+-- #0F = left channel I_ADDR (stereo covox channel 1)
 -- #1F = left channel B
 -- #4F = right channel C (stereo covox channel 2)
 -- #5F = right channel D
@@ -19,18 +19,18 @@ use IEEE.NUMERIC_STD.ALL;
  
 entity soundrive is
 	Port ( 
-		RESET	: in std_logic;
-		CLK		: in std_logic;
-		CS		: in std_logic;
-		A		: in std_logic_vector(7 downto 0);
-		DI		: in std_logic_vector(7 downto 0);
-		WR_n	: in std_logic;
-		IORQ_n	: in std_logic;
-		DOS		: in std_logic;
-		OUTA	: out std_logic_vector(7 downto 0);
-		OUTB	: out std_logic_vector(7 downto 0);
-		OUTC	: out std_logic_vector(7 downto 0);
-		OUTD	: out std_logic_vector(7 downto 0));
+		I_RESET		: in std_logic;
+		I_CLK		: in std_logic;
+		I_CS		: in std_logic;
+		I_ADDR		: in std_logic_vector(7 downto 0);
+		I_DATA		: in std_logic_vector(7 downto 0);
+		I_WR_N		: in std_logic;
+		I_IORQ_N	: in std_logic;
+		I_DOS		: in std_logic;
+		O_COVOX_A	: out std_logic_vector(7 downto 0);
+		O_COVOX_B	: out std_logic_vector(7 downto 0);
+		O_COVOX_C	: out std_logic_vector(7 downto 0);
+		O_COVOX_D	: out std_logic_vector(7 downto 0));
 end soundrive;
  
 architecture soundrive_unit of soundrive is
@@ -39,24 +39,24 @@ architecture soundrive_unit of soundrive is
 	signal outc_reg : std_logic_vector (7 downto 0);
 	signal outd_reg : std_logic_vector (7 downto 0);
 begin
-	process (CLK, RESET, CS)
+	process (I_CLK, I_RESET, I_CS)
 	begin
-		if RESET = '1' or CS = '0' then
-			outa <= (others => '0');
-			outb <= (others => '0');
-			outc <= (others => '0');
-			outd <= (others => '0');
-		elsif CLK'event and CLK = '1' then
-			if A = X"0F" and IORQ_n = '0' and WR_n = '0' and DOS = '0' then
-				outa <= DI;
-			elsif A = X"1F" and IORQ_n = '0' and WR_n = '0' and DOS = '0' then
-				outb <= DI;
-			elsif A = X"4F" and IORQ_n = '0' and WR_n = '0' and DOS = '0' then
-				outc <= DI;
-			elsif A = X"5F" and IORQ_n = '0' and WR_n = '0' and DOS = '0' then
-				outd <= DI;
-			elsif A = X"FB" and IORQ_n = '0' and WR_n = '0' and DOS = '0' then
-				outd <= DI;
+		if I_RESET = '1' or I_CS = '0' then
+			O_COVOX_A <= (others => '0');
+			O_COVOX_B <= (others => '0');
+			O_COVOX_C <= (others => '0');
+			O_COVOX_D <= (others => '0');
+		elsif I_CLK'event and I_CLK = '1' then
+			if I_ADDR = X"0F" and I_IORQ_N = '0' and I_WR_N = '0' and I_DOS = '0' then
+				O_COVOX_A <= I_DATA;
+			elsif I_ADDR = X"1F" and I_IORQ_N = '0' and I_WR_N = '0' and I_DOS = '0' then
+				O_COVOX_B <= I_DATA;
+			elsif I_ADDR = X"4F" and I_IORQ_N = '0' and I_WR_N = '0' and I_DOS = '0' then
+				O_COVOX_C <= I_DATA;
+			elsif I_ADDR = X"5F" and I_IORQ_N = '0' and I_WR_N = '0' and I_DOS = '0' then
+				O_COVOX_D <= I_DATA;
+			elsif I_ADDR = X"FB" and I_IORQ_N = '0' and I_WR_N = '0' and I_DOS = '0' then
+				O_COVOX_D <= I_DATA;
 			end if;
 		end if;
 	end process;

@@ -1,4 +1,4 @@
--------------------------------------------------------------------[01.04.2014]
+-------------------------------------------------------------------[11.09.2015]
 -- DivMMC
 -------------------------------------------------------------------------------
 -- Engineer: 	MVV, shurik-ua
@@ -14,24 +14,23 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity divmmc is
 port (
-	CLK			: in std_logic;
-	EN			: in std_logic;
-	RESET			: in std_logic;
-	ADDR			: in std_logic_vector(15 downto 0);
-	DI			: in std_logic_vector(7 downto 0);
-	DO			: out std_logic_vector(7 downto 0);
-	WR_N			: in std_logic;
-	RD_N			: in std_logic;
-	IORQ_N			: in std_logic;
-	MREQ_N			: in std_logic;
-	M1_N			: in std_logic;
-	E3REG			: out std_logic_vector(7 downto 0);
-	AMAP			: out std_logic;
-	CS_N			: out std_logic;
-	SCLK			: out std_logic;
-	MOSI			: out std_logic;
-	MISO			: in std_logic);
-	
+	I_CLK			: in std_logic;
+	I_ENA			: in std_logic;
+	I_RESET			: in std_logic;
+	I_ADDR			: in std_logic_vector(15 downto 0);
+	I_DATA			: in std_logic_vector(7 downto 0);
+	O_DATA			: out std_logic_vector(7 downto 0);
+	I_WR_N			: in std_logic;
+	I_RD_N			: in std_logic;
+	I_IORQ_N		: in std_logic;
+	I_MREQ_N		: in std_logic;
+	I_M1_N			: in std_logic;
+	O_E3REG			: out std_logic_vector(7 downto 0);
+	O_AMAP			: out std_logic;
+	O_CS_N			: out std_logic;
+	O_SCLK			: out std_logic;
+	O_MOSI			: out std_logic;
+	I_MISO			: in std_logic);
 end divmmc;
 
 architecture rtl of divmmc is
@@ -46,31 +45,31 @@ architecture rtl of divmmc is
 	
 begin
 
-process (RESET, CLK, WR_N, ADDR, IORQ_N, EN, DI)
+process (I_RESET, I_CLK, I_WR_N, I_ADDR, I_IORQ_N, I_ENA, I_DATA)
 begin
-	if (RESET = '1') then
+	if (I_RESET = '1') then
 		cs <= '1';
 --		reg_e3(5 downto 0) <= (others => '0');
 --		reg_e3(7) <= '0';
 		reg_e3 <= (others => '0');
-	elsif (CLK'event and CLK = '1') then
---		if (IORQ_N = '0' and WR_N = '0' and EN = '1' and ADDR(7 downto 0) = X"E3") then	reg_e3 <= DI(7) & (reg_e3(6) or DI(6)) & DI(5 downto 0); end if;	-- #E3
-		if (IORQ_N = '0' and WR_N = '0' and EN = '1' and ADDR(7 downto 0) = X"E3") then	reg_e3 <= DI; end if;	-- #E3
-		if (IORQ_N = '0' and WR_N = '0' and EN = '1' and ADDR(7 downto 0) = X"E7") then cs <= DI(0); end if;	-- #E7
+	elsif (I_CLK'event and I_CLK = '1') then
+--		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ENA = '1' and I_ADDR(7 downto 0) = X"E3") then	reg_e3 <= I_DATA(7) & (reg_e3(6) or I_DATA(6)) & I_DATA(5 downto 0); end if;	-- #E3
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ENA = '1' and I_ADDR(7 downto 0) = X"E3") then	reg_e3 <= I_DATA; end if;	-- #E3
+		if (I_IORQ_N = '0' and I_WR_N = '0' and I_ENA = '1' and I_ADDR(7 downto 0) = X"E7") then cs <= I_DATA(0); end if;	-- #E7
 	end if;
 end process;
 
-process (CLK, M1_N, MREQ_N, ADDR, EN, detect, automap)
+process (I_CLK, I_M1_N, I_MREQ_N, I_ADDR, I_ENA, detect, automap)
 begin
-	if (CLK'event and CLK = '1') then
-		if (M1_N = '0' and MREQ_N = '0' and EN = '1' and (ADDR = X"0000" or ADDR = X"0008" or ADDR = X"0038" or ADDR = X"0066" or ADDR = X"04C6" or ADDR = X"0562" or ADDR(15 downto 8) = X"3D")) then
+	if (I_CLK'event and I_CLK = '1') then
+		if (I_M1_N = '0' and I_MREQ_N = '0' and I_ENA = '1' and (I_ADDR = X"0000" or I_ADDR = X"0008" or I_ADDR = X"0038" or I_ADDR = X"0066" or I_ADDR = X"04C6" or I_ADDR = X"0562" or I_ADDR(15 downto 8) = X"3D")) then
 			detect <= '1';	-- ������������ ��� ���������� ���� ������� � �1 ����� ��� ���������� �������� �������
-		elsif (M1_N = '0' and MREQ_N = '0' and EN = '1' and ADDR(15 downto 3) = "0001111111111") then
+		elsif (I_M1_N = '0' and I_MREQ_N = '0' and I_ENA = '1' and I_ADDR(15 downto 3) = "0001111111111") then
 			detect <= '0';	-- �������������� ��� ���������� ���� ������� � �1 ��� ���������� ������� 0x1FF8-0x1FFF
 		end if;
-		if (M1_N = '0' and IORQ_N = '1' and EN = '1' and ADDR(15 downto 8) = X"3D") then
+		if (I_M1_N = '0' and I_IORQ_N = '1' and I_ENA = '1' and I_ADDR(15 downto 8) = X"3D") then
 			automap <= '1';	-- ������������ ������������ ��� �������� ������ ������
-		elsif (MREQ_N = '0' and EN = '1' and WR_N = '1' and RD_N = '1') then
+		elsif (I_MREQ_N = '0' and I_ENA = '1' and I_WR_N = '1' and I_RD_N = '1') then
 			automap <= detect;	-- ������������ ����� ������ ������
 		end if;
 	end if;
@@ -78,27 +77,27 @@ end process;
 
 -------------------------------------------------------------------------------
 -- SPI Interface
-process(CLK, RESET, ADDR, IORQ_N, WR_N)
+process(I_CLK, I_RESET, I_ADDR, I_IORQ_N, I_WR_N)
 begin
-	if RESET = '1' then
+	if I_RESET = '1' then
 		shift_reg <= (others => '1');
 		in_reg <= (others => '1');
 		counter <= "1111"; -- Idle
-	elsif (CLK'event and CLK = '1') then
+	elsif (I_CLK'event and I_CLK = '1') then
 		if counter = "1111" then
 			in_reg <= shift_reg(7 downto 0);
-			if IORQ_N = '0' and ADDR(7 downto 0) = X"EB" and EN = '1' then
-				if WR_N = '1' then
+			if I_IORQ_N = '0' and I_ADDR(7 downto 0) = X"EB" and I_ENA = '1' then
+				if I_WR_N = '1' then
 					shift_reg <= (others => '1');
 				else
-					shift_reg <= DI & '1';
+					shift_reg <= I_DATA & '1';
 				end if;
 				counter <= "0000";
 			end if;
 		else
 			counter <= counter + 1;
 			if counter(0) = '0' then
-				shift_reg(0) <= MISO;
+				shift_reg(0) <= I_MISO;
 			else
 				shift_reg <= shift_reg(7 downto 0) & '1';
 			end if;
@@ -106,11 +105,11 @@ begin
 	end if;
 end process;
 	
-DO    <= in_reg;
-CS_N  <= cs;
-MOSI  <= shift_reg(8);
-SCLK  <= counter(0);
-E3REG <= reg_e3;
-AMAP  <= automap;
+O_DATA    <= in_reg;
+O_CS_N  <= cs;
+O_MOSI  <= shift_reg(8);
+O_SCLK  <= counter(0);
+O_E3REG <= reg_e3;
+O_AMAP  <= automap;
 
 end rtl;

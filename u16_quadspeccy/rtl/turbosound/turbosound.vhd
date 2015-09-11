@@ -1,4 +1,4 @@
--------------------------------------------------------------------[07.09.2013]
+-------------------------------------------------------------------[11.09.2015]
 -- TurboSound
 -------------------------------------------------------------------------------
 -- Engineer: 	MVV
@@ -11,23 +11,23 @@ use IEEE.NUMERIC_STD.ALL;
  
 entity turbosound is
 port( 
-	RESET		: in std_logic;
-	CLK		: in std_logic;
-	ENA		: in std_logic;
-	A		: in std_logic_vector(15 downto 0);
-	DI		: in std_logic_vector(7 downto 0);
-	WR_n		: in std_logic;
-	IORQ_n		: in std_logic;
-	M1_n		: in std_logic;
-	SEL		: out std_logic;
-	CN0_DO		: out std_logic_vector(7 downto 0);
-	CN0_A		: out std_logic_vector(7 downto 0);
-	CN0_B		: out std_logic_vector(7 downto 0);
-	CN0_C		: out std_logic_vector(7 downto 0);
-	CN1_DO		: out std_logic_vector(7 downto 0);
-	CN1_A		: out std_logic_vector(7 downto 0);
-	CN1_B		: out std_logic_vector(7 downto 0);
-	CN1_C		: out std_logic_vector(7 downto 0));
+	I_RESET		: in std_logic;
+	I_CLK		: in std_logic;
+	I_ENA		: in std_logic;
+	I_ADDR		: in std_logic_vector(15 downto 0);
+	I_DATA		: in std_logic_vector(7 downto 0);
+	I_WR_N		: in std_logic;
+	I_IORQ_N	: in std_logic;
+	I_M1_N		: in std_logic;
+	O_SEL		: out std_logic;
+	O_CN0_DATA	: out std_logic_vector(7 downto 0);
+	O_CN0_A		: out std_logic_vector(7 downto 0);
+	O_CN0_B		: out std_logic_vector(7 downto 0);
+	O_CN0_C		: out std_logic_vector(7 downto 0);
+	O_CN1_DATA	: out std_logic_vector(7 downto 0);
+	O_CN1_A		: out std_logic_vector(7 downto 0);
+	O_CN1_B		: out std_logic_vector(7 downto 0);
+	O_CN1_C		: out std_logic_vector(7 downto 0));
 end turbosound;
  
 architecture turbosound_arch of turbosound is
@@ -35,46 +35,46 @@ architecture turbosound_arch of turbosound is
 	signal bdir	: std_logic;
 	signal ssg	: std_logic;
 begin
-	bc1  <= '1' when (IORQ_n = '0' and A(15) = '1' and A(1) = '0' and M1_n = '1' and A(14) = '1') else '0';
-	bdir <= '1' when (IORQ_n = '0' and A(15) = '1' and A(1) = '0' and M1_n = '1' and WR_n = '0') else '0';
-	SEL  <= ssg;
+	bc1  <= '1' when (I_IORQ_N = '0' and I_ADDR(15) = '1' and I_ADDR(1) = '0' and I_M1_N = '1' and I_ADDR(14) = '1') else '0';
+	bdir <= '1' when (I_IORQ_N = '0' and I_ADDR(15) = '1' and I_ADDR(1) = '0' and I_M1_N = '1' and I_WR_N = '0') else '0';
+	O_SEL  <= ssg;
 	
-	process(CLK, RESET)
+	process(I_CLK, I_RESET)
 	begin
-		if (RESET = '1') then
+		if (I_RESET = '1') then
 			ssg <= '0';
-		elsif (CLK'event and CLK = '1') then
-			if (DI(7 downto 1) = "1111111" and bdir = '1' and bc1 = '1') then
-				ssg <= DI(0);
+		elsif (I_CLK'event and I_CLK = '1') then
+			if (I_DATA(7 downto 1) = "1111111" and bdir = '1' and bc1 = '1') then
+				ssg <= I_DATA(0);
 			end if;
 		end if;
 	end process;
 
 ssg0_unit: entity work.ay8910(rtl)
 		port map(
-			RESET 		=> RESET,
-			CLK     	=> CLK,
-			DI    		=> DI,
-			DO    		=> CN0_DO,
-			ENA		=> ENA,
-			CS		=> not ssg,
-			BDIR		=> bdir,
-			BC		=> bc1,
-			OUT_A		=> CN0_A,
-			OUT_B		=> CN0_B,
-			OUT_C		=> CN0_C);
+			RESET  		=> I_RESET,
+			CLK    		=> I_CLK,
+			DI  		=> I_DATA,
+			DO 		=> O_CN0_DATA,
+			ENA   		=> I_ENA,
+			CS   		=> not ssg,
+			BDIR   		=> bdir,
+			BC   		=> bc1,
+			OUT_A		=> O_CN0_A,
+			OUT_B		=> O_CN0_B,
+			OUT_C		=> O_CN0_C);
 
 ssg1_unit: entity work.ay8910(rtl)
 		port map(
-			RESET 		=> RESET,
-			CLK     	=> CLK,
-			DI    		=> DI,
-			DO    		=> CN1_DO,
-			ENA		=> ENA,
-			CS		=> ssg,
-			BDIR		=> bdir,
-			BC		=> bc1,
-			OUT_A		=> CN1_A,
-			OUT_B		=> CN1_B,
-			OUT_C		=> CN1_C);
+			RESET  		=> I_RESET,
+			CLK    		=> I_CLK,
+			DI  		=> I_DATA,
+			DO 		=> O_CN1_DATA,
+			ENA   		=> I_ENA,
+			CS   		=> ssg,
+			BDIR   		=> bdir,
+			BC   		=> bc1,
+			OUT_A		=> O_CN1_A,
+			OUT_B		=> O_CN1_B,
+			OUT_C		=> O_CN1_C);
 end turbosound_arch;

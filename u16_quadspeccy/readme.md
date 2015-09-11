@@ -1,4 +1,8 @@
 # Quad Speccy
+build 20150911
+.обновлена прошивка VNC2 (автор Alexey Spirkov)
+.добавил Kempston Mouse
+
 Демонстрационное видео: https://www.youtube.com/watch?feature=player_embedded&v=Dpe38en248s
 
 ![image](readme/20150302_095132.jpg)
@@ -18,6 +22,7 @@ Quad Speccy - это система "4 in 1", т.е. построена на б�
 - SounDrive (4 x Covox)
 - RTC (MC146818A)
 - Для окна 0 добавил DMA-Sound
+- Kempston Mouse
 
 ![image](readme/20150322_123219.jpg)
 

@@ -19,12 +19,12 @@
 -- Порт данных 57h
 --	Используется как на запись, так и на чтение для обмена данными по SPI-интерфейсу.
 --	Тактирование осуществляется автоматически при записи какого-либо значения в порт 57h. При
---		этом формируются 8 тактовых импульсов на выходе SDCLK, на выход SDDI поступают данные
---		последовательно от старшего бита к младшему с каждым фронтом сигнала SDCLK. Период
---		следования тактовых импульсов составляет 125 нс для оригинального ZC.
+--	этом формируются 8 тактовых импульсов на выходе SDCLK, на выход SDDI поступают данные
+--	последовательно от старшего бита к младшему с каждым фронтом сигнала SDCLK. Период
+--	следования тактовых импульсов составляет 125 нс для оригинального ZC.
 --	При чтении из порта 57h также автоматически производится тактирование. Буферный регистр
---		порта 57h, используемый при чтении, заполняется данными со входа SDIN последовательно от
---		старшего бита к младшему с каждым фронтом сигнала SDCLK.
+--	порта 57h, используемый при чтении, заполняется данными со входа SDIN последовательно от
+--	старшего бита к младшему с каждым фронтом сигнала SDCLK.
 
 library IEEE;
 use IEEE.std_logic_1164.all;
@@ -32,19 +32,19 @@ use IEEE.std_logic_unsigned.all;
 
 entity zcontroller is
 	port (
-		RESET		: in std_logic;
-		CLK     	: in std_logic;
-		A       	: in std_logic;
-		DI		: in std_logic_vector(7 downto 0);
-		DO		: out std_logic_vector(7 downto 0);
-		RD		: in std_logic;
-		WR		: in std_logic;
-		SDDET		: in std_logic;
-		SDPROT		: in std_logic;
-		CS_n		: out std_logic;
-		SCLK		: out std_logic;
-		MOSI		: out std_logic;
-		MISO		: in std_logic );
+		I_RESET		: in std_logic;
+		I_CLK     	: in std_logic;
+		I_ADDR       	: in std_logic;
+		I_DATA		: in std_logic_vector(7 downto 0);
+		O_DATA		: out std_logic_vector(7 downto 0);
+		I_RD		: in std_logic;
+		I_WR		: in std_logic;
+		I_SDDET		: in std_logic;
+		I_SDPROT	: in std_logic;
+		O_CS_N		: out std_logic;
+		O_SCLK		: out std_logic;
+		O_MOSI		: out std_logic;
+		I_MISO		: in std_logic );
 end;
 
 architecture rtl of zcontroller is
@@ -56,25 +56,25 @@ architecture rtl of zcontroller is
 	
 begin
 
-	process (RESET, CLK, A, WR, DI)
+	process (I_RESET, I_CLK, I_ADDR, I_WR, I_DATA)
 	begin
-		if RESET = '1' then
+		if I_RESET = '1' then
 			csn <= '1';
-		elsif (CLK'event and CLK = '1') then
-			if (A = '1' and WR = '1') then
-				csn <= DI(1);
+		elsif (I_CLK'event and I_CLK = '1') then
+			if (I_ADDR = '1' and I_WR = '1') then
+				csn <= I_DATA(1);
 			end if;
 		end if;
 	end process;
 
 	cnt_en <= not cnt(3) or cnt(2) or cnt(1) or cnt(0);
 	
-	process (CLK, cnt_en, A, RD, WR, SDPROT)
+	process (I_CLK, cnt_en, I_ADDR, I_RD, I_WR, I_SDPROT)
 	begin
-		if (A = '0' and (WR = '1' or RD = '1')) then
+		if (I_ADDR = '0' and (I_WR = '1' or I_RD = '1')) then
 			cnt <= "1110";
 		else 
-			if (CLK'event and CLK = '0') then			
+			if (I_CLK'event and I_CLK = '0') then			
 				if cnt_en = '1' then
 					cnt <= cnt + 1;
 				end if;
@@ -82,11 +82,11 @@ begin
 		end if;
 	end process;
 
-	process (CLK)
+	process (I_CLK)
 	begin
-		if (CLK'event and CLK = '0') then			
-			if (A = '0' and WR = '1') then
-				shift_out <= DI;
+		if (I_CLK'event and I_CLK = '0') then			
+			if (I_ADDR = '0' and I_WR = '1') then
+				shift_out <= I_DATA;
 			else
 				if cnt(3) = '0' then
 					shift_out(7 downto 0) <= shift_out(6 downto 0) & '1';
@@ -95,18 +95,18 @@ begin
 		end if;
 	end process;
 	
-	process (CLK)
+	process (I_CLK)
 	begin
-		if (CLK'event and CLK = '0') then			
+		if (I_CLK'event and I_CLK = '0') then			
 			if cnt(3) = '0' then
-				shift_in <= shift_in(6 downto 0) & MISO;
+				shift_in <= shift_in(6 downto 0) & I_MISO;
 			end if;
 		end if;
 	end process;
 	
-	SCLK  <= CLK and not cnt(3);
-	MOSI  <= shift_out(7);
-	CS_n  <= csn;
-	DO    <= cnt(3) & "11111" & SDPROT & SDDET when A = '1' else shift_in;
+	O_SCLK  <= I_CLK and not cnt(3);
+	O_MOSI  <= shift_out(7);
+	O_CS_N  <= csn;
+	O_DATA    <= cnt(3) & "11111" & I_SDPROT & I_SDDET when I_ADDR = '1' else shift_in;
 	
 end rtl;

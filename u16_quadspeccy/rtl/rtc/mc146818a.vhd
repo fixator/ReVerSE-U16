@@ -1,4 +1,4 @@
--------------------------------------------------------------------[14.10.2011]
+-------------------------------------------------------------------[11.09.2015]
 -- MC146818A REAL-TIME CLOCK PLUS RAM
 -------------------------------------------------------------------------------
 -- Engineer: 	MVV
@@ -12,25 +12,25 @@ use IEEE.std_logic_unsigned.all;
 
 entity MC146818A is
 port (
-	RESET	: in std_logic;
-	CLK		: in std_logic;
-	ENA		: in std_logic;
-	CS		: in std_logic;
-	WR		: in std_logic;
-	A		: in std_logic_vector(5 downto 0);
-	DI		: in std_logic_vector(7 downto 0);
-	DO		: out std_logic_vector(7 downto 0));
+	I_RESET		: in std_logic;
+	I_CLK		: in std_logic;
+	I_ENA		: in std_logic;
+	I_CS		: in std_logic;
+	I_WR		: in std_logic;
+	I_ADDR		: in std_logic_vector(5 downto 0);
+	I_DATA		: in std_logic_vector(7 downto 0);
+	O_DATA		: out std_logic_vector(7 downto 0));
 end;
 
 architecture RTL of MC146818A is
 	signal pre_scaler			: std_logic_vector(18 downto 0);
 	signal leap_reg				: std_logic_vector(1 downto 0);
 	signal seconds_reg			: std_logic_vector(7 downto 0); -- 00
-	signal seconds_alarm_reg	: std_logic_vector(7 downto 0); -- 01
+	signal seconds_alarm_reg		: std_logic_vector(7 downto 0); -- 01
 	signal minutes_reg			: std_logic_vector(7 downto 0); -- 02
-	signal minutes_alarm_reg	: std_logic_vector(7 downto 0); -- 03
+	signal minutes_alarm_reg		: std_logic_vector(7 downto 0); -- 03
 	signal hours_reg			: std_logic_vector(7 downto 0); -- 04
-	signal hours_alarm_reg		: std_logic_vector(7 downto 0); -- 05
+	signal hours_alarm_reg			: std_logic_vector(7 downto 0); -- 05
 	signal weeks_reg			: std_logic_vector(7 downto 0); -- 06
 	signal days_reg				: std_logic_vector(7 downto 0); -- 07
 	signal month_reg			: std_logic_vector(7 downto 0); -- 08
@@ -91,168 +91,168 @@ architecture RTL of MC146818A is
 	signal reg3f				: std_logic_vector(7 downto 0);	
 
 begin
-	process(A, seconds_reg, seconds_alarm_reg, minutes_reg, minutes_alarm_reg, hours_reg, hours_alarm_reg, weeks_reg, days_reg, month_reg, year_reg,
+	process(I_ADDR, seconds_reg, seconds_alarm_reg, minutes_reg, minutes_alarm_reg, hours_reg, hours_alarm_reg, weeks_reg, days_reg, month_reg, year_reg,
 			a_reg, b_reg, c_reg, e_reg, f_reg, reg10, reg11, reg12, reg13, reg14, reg15, reg16, reg17, reg18, reg19, reg1a, reg1b, reg1c, reg1d,
 			reg1e, reg1f, reg20, reg21, reg22, reg23, reg24, reg25, reg26, reg27, reg28, reg29, reg2a, reg2b, reg2c, reg2d, reg2e, reg2f, reg30,
 			reg31, reg32, reg33, reg34, reg35, reg36, reg37, reg38, reg39, reg3a, reg3b, reg3c, reg3d, reg3e, reg3f)
 	begin
 		-- RTC register read
-		case A(5 downto 0) is
-			when "000000" => DO <= seconds_reg;
-			when "000001" => DO <= seconds_alarm_reg;
-			when "000010" => DO <= minutes_reg;
-			when "000011" => DO <= minutes_alarm_reg;
-			when "000100" => DO <= hours_reg;
-			when "000101" => DO <= hours_alarm_reg;
-			when "000110" => DO <= weeks_reg;
-			when "000111" => DO <= days_reg;
-			when "001000" => DO <= month_reg;
-			when "001001" => DO <= year_reg;
-			when "001010" => DO <= a_reg;
-			when "001011" => DO <= b_reg;
-			when "001100" => DO <= c_reg;
-			when "001101" => DO <= "10000000";
-			when "001110" => DO <= e_reg;
-			when "001111" => DO <= f_reg;
-			when "010000" => DO <= reg10;
-			when "010001" => DO <= reg11;
-			when "010010" => DO <= reg12;
-			when "010011" => DO <= reg13;
-			when "010100" => DO <= reg14;
-			when "010101" => DO <= reg15;
-			when "010110" => DO <= reg16;
-			when "010111" => DO <= reg17;
-			when "011000" => DO <= reg18;
-			when "011001" => DO <= reg19;
-			when "011010" => DO <= reg1a;
-			when "011011" => DO <= reg1b;
-			when "011100" => DO <= reg1c;
-			when "011101" => DO <= reg1d;
-			when "011110" => DO <= reg1e;
-			when "011111" => DO <= reg1f;
-			when "100000" => DO <= reg20;
-			when "100001" => DO <= reg21;
-			when "100010" => DO <= reg22;
-			when "100011" => DO <= reg23;
-			when "100100" => DO <= reg24;
-			when "100101" => DO <= reg25;
-			when "100110" => DO <= reg26;
-			when "100111" => DO <= reg27;
-			when "101000" => DO <= reg28;
-			when "101001" => DO <= reg29;
-			when "101010" => DO <= reg2a;
-			when "101011" => DO <= reg2b;
-			when "101100" => DO <= reg2c;
-			when "101101" => DO <= reg2d;
-			when "101110" => DO <= reg2e;
-			when "101111" => DO <= reg2f;
-			when "110000" => DO <= reg30;
-			when "110001" => DO <= reg31;
-			when "110010" => DO <= reg32;
-			when "110011" => DO <= reg33;
-			when "110100" => DO <= reg34;
-			when "110101" => DO <= reg35;
-			when "110110" => DO <= reg36;
-			when "110111" => DO <= reg37;
-			when "111000" => DO <= reg38;
-			when "111001" => DO <= reg39;
-			when "111010" => DO <= reg3a;
-			when "111011" => DO <= reg3b;
-			when "111100" => DO <= reg3c;
-			when "111101" => DO <= reg3d;
-			when "111110" => DO <= reg3e;
-			when "111111" => DO <= reg3f;
+		case I_ADDR(5 downto 0) is
+			when "000000" => O_DATA <= seconds_reg;
+			when "000001" => O_DATA <= seconds_alarm_reg;
+			when "000010" => O_DATA <= minutes_reg;
+			when "000011" => O_DATA <= minutes_alarm_reg;
+			when "000100" => O_DATA <= hours_reg;
+			when "000101" => O_DATA <= hours_alarm_reg;
+			when "000110" => O_DATA <= weeks_reg;
+			when "000111" => O_DATA <= days_reg;
+			when "001000" => O_DATA <= month_reg;
+			when "001001" => O_DATA <= year_reg;
+			when "001010" => O_DATA <= a_reg;
+			when "001011" => O_DATA <= b_reg;
+			when "001100" => O_DATA <= c_reg;
+			when "001101" => O_DATA <= "10000000";
+			when "001110" => O_DATA <= e_reg;
+			when "001111" => O_DATA <= f_reg;
+			when "010000" => O_DATA <= reg10;
+			when "010001" => O_DATA <= reg11;
+			when "010010" => O_DATA <= reg12;
+			when "010011" => O_DATA <= reg13;
+			when "010100" => O_DATA <= reg14;
+			when "010101" => O_DATA <= reg15;
+			when "010110" => O_DATA <= reg16;
+			when "010111" => O_DATA <= reg17;
+			when "011000" => O_DATA <= reg18;
+			when "011001" => O_DATA <= reg19;
+			when "011010" => O_DATA <= reg1a;
+			when "011011" => O_DATA <= reg1b;
+			when "011100" => O_DATA <= reg1c;
+			when "011101" => O_DATA <= reg1d;
+			when "011110" => O_DATA <= reg1e;
+			when "011111" => O_DATA <= reg1f;
+			when "100000" => O_DATA <= reg20;
+			when "100001" => O_DATA <= reg21;
+			when "100010" => O_DATA <= reg22;
+			when "100011" => O_DATA <= reg23;
+			when "100100" => O_DATA <= reg24;
+			when "100101" => O_DATA <= reg25;
+			when "100110" => O_DATA <= reg26;
+			when "100111" => O_DATA <= reg27;
+			when "101000" => O_DATA <= reg28;
+			when "101001" => O_DATA <= reg29;
+			when "101010" => O_DATA <= reg2a;
+			when "101011" => O_DATA <= reg2b;
+			when "101100" => O_DATA <= reg2c;
+			when "101101" => O_DATA <= reg2d;
+			when "101110" => O_DATA <= reg2e;
+			when "101111" => O_DATA <= reg2f;
+			when "110000" => O_DATA <= reg30;
+			when "110001" => O_DATA <= reg31;
+			when "110010" => O_DATA <= reg32;
+			when "110011" => O_DATA <= reg33;
+			when "110100" => O_DATA <= reg34;
+			when "110101" => O_DATA <= reg35;
+			when "110110" => O_DATA <= reg36;
+			when "110111" => O_DATA <= reg37;
+			when "111000" => O_DATA <= reg38;
+			when "111001" => O_DATA <= reg39;
+			when "111010" => O_DATA <= reg3a;
+			when "111011" => O_DATA <= reg3b;
+			when "111100" => O_DATA <= reg3c;
+			when "111101" => O_DATA <= reg3d;
+			when "111110" => O_DATA <= reg3e;
+			when "111111" => O_DATA <= reg3f;
 			when others => null;
 		end case;
 	end process;
 		
-	process(CLK, ENA, RESET)
+	process(I_CLK, I_ENA, I_RESET)
 	begin
-		if RESET = '1' then
+		if I_RESET = '1' then
 			a_reg <= "00100110";
 			b_reg <= (others => '0');
 			c_reg <= (others => '0');
-		elsif CLK'event and CLK = '1' then
+		elsif I_CLK'event and I_CLK = '1' then
 			-- RTC register write
-			if WR = '1' and CS = '1' then
-				case A(5 downto 0) is
-					when "000000" => seconds_reg <= DI;
-					when "000001" => seconds_alarm_reg <= DI;
-					when "000010" => minutes_reg <= DI;
-					when "000011" => minutes_alarm_reg <= DI;
-					when "000100" => hours_reg <= DI;
-					when "000101" => hours_alarm_reg <= DI;
-					when "000110" => weeks_reg <= DI;
-					when "000111" => days_reg <= DI;
-					when "001000" => month_reg <= DI;
-					when "001001" => year_reg <= DI;
+			if I_WR = '1' and I_CS = '1' then
+				case I_ADDR(5 downto 0) is
+					when "000000" => seconds_reg <= I_DATA;
+					when "000001" => seconds_alarm_reg <= I_DATA;
+					when "000010" => minutes_reg <= I_DATA;
+					when "000011" => minutes_alarm_reg <= I_DATA;
+					when "000100" => hours_reg <= I_DATA;
+					when "000101" => hours_alarm_reg <= I_DATA;
+					when "000110" => weeks_reg <= I_DATA;
+					when "000111" => days_reg <= I_DATA;
+					when "001000" => month_reg <= I_DATA;
+					when "001001" => year_reg <= I_DATA;
 						if b_reg(2) = '0' then -- BCD to BIN convertion
-							if DI(4) = '0' then
-								leap_reg <= DI(1 downto 0);
+							if I_DATA(4) = '0' then
+								leap_reg <= I_DATA(1 downto 0);
 							else
-								leap_reg <= (not DI(1)) & DI(0);
+								leap_reg <= (not I_DATA(1)) & I_DATA(0);
 							end if;
 						else 
-							leap_reg <= DI(1 downto 0);
+							leap_reg <= I_DATA(1 downto 0);
 						end if;
-					when "001010" => a_reg <= DI;
-					when "001011" => b_reg <= DI;
---					when "001100" => c_reg <= DI;
---					when "001101" => d_reg <= DI;
-					when "001110" => e_reg <= DI;
-					when "001111" => f_reg <= DI;
-					when "010000" => reg10 <= DI;
-					when "010001" => reg11 <= DI;
-					when "010010" => reg12 <= DI;
-					when "010011" => reg13 <= DI;
-					when "010100" => reg14 <= DI;
-					when "010101" => reg15 <= DI;
-					when "010110" => reg16 <= DI;
-					when "010111" => reg17 <= DI;
-					when "011000" => reg18 <= DI;
-					when "011001" => reg19 <= DI;
-					when "011010" => reg1a <= DI;
-					when "011011" => reg1b <= DI;
-					when "011100" => reg1c <= DI;
-					when "011101" => reg1d <= DI;
-					when "011110" => reg1e <= DI;
-					when "011111" => reg1f <= DI;
-					when "100000" => reg20 <= DI;
-					when "100001" => reg21 <= DI;
-					when "100010" => reg22 <= DI;
-					when "100011" => reg23 <= DI;
-					when "100100" => reg24 <= DI;
-					when "100101" => reg25 <= DI;
-					when "100110" => reg26 <= DI;
-					when "100111" => reg27 <= DI;
-					when "101000" => reg28 <= DI;
-					when "101001" => reg29 <= DI;
-					when "101010" => reg2a <= DI;
-					when "101011" => reg2b <= DI;
-					when "101100" => reg2c <= DI;
-					when "101101" => reg2d <= DI;
-					when "101110" => reg2e <= DI;
-					when "101111" => reg2f <= DI;
-					when "110000" => reg30 <= DI;
-					when "110001" => reg31 <= DI;
-					when "110010" => reg32 <= DI;
-					when "110011" => reg33 <= DI;
-					when "110100" => reg34 <= DI;
-					when "110101" => reg35 <= DI;
-					when "110110" => reg36 <= DI;
-					when "110111" => reg37 <= DI;
-					when "111000" => reg38 <= DI;
-					when "111001" => reg39 <= DI;
-					when "111010" => reg3a <= DI;
-					when "111011" => reg3b <= DI;
-					when "111100" => reg3c <= DI;
-					when "111101" => reg3d <= DI;
-					when "111110" => reg3e <= DI;
-					when "111111" => reg3f <= DI;
+					when "001010" => a_reg <= I_DATA;
+					when "001011" => b_reg <= I_DATA;
+--					when "001100" => c_reg <= I_DATA;
+--					when "001101" => d_reg <= I_DATA;
+					when "001110" => e_reg <= I_DATA;
+					when "001111" => f_reg <= I_DATA;
+					when "010000" => reg10 <= I_DATA;
+					when "010001" => reg11 <= I_DATA;
+					when "010010" => reg12 <= I_DATA;
+					when "010011" => reg13 <= I_DATA;
+					when "010100" => reg14 <= I_DATA;
+					when "010101" => reg15 <= I_DATA;
+					when "010110" => reg16 <= I_DATA;
+					when "010111" => reg17 <= I_DATA;
+					when "011000" => reg18 <= I_DATA;
+					when "011001" => reg19 <= I_DATA;
+					when "011010" => reg1a <= I_DATA;
+					when "011011" => reg1b <= I_DATA;
+					when "011100" => reg1c <= I_DATA;
+					when "011101" => reg1d <= I_DATA;
+					when "011110" => reg1e <= I_DATA;
+					when "011111" => reg1f <= I_DATA;
+					when "100000" => reg20 <= I_DATA;
+					when "100001" => reg21 <= I_DATA;
+					when "100010" => reg22 <= I_DATA;
+					when "100011" => reg23 <= I_DATA;
+					when "100100" => reg24 <= I_DATA;
+					when "100101" => reg25 <= I_DATA;
+					when "100110" => reg26 <= I_DATA;
+					when "100111" => reg27 <= I_DATA;
+					when "101000" => reg28 <= I_DATA;
+					when "101001" => reg29 <= I_DATA;
+					when "101010" => reg2a <= I_DATA;
+					when "101011" => reg2b <= I_DATA;
+					when "101100" => reg2c <= I_DATA;
+					when "101101" => reg2d <= I_DATA;
+					when "101110" => reg2e <= I_DATA;
+					when "101111" => reg2f <= I_DATA;
+					when "110000" => reg30 <= I_DATA;
+					when "110001" => reg31 <= I_DATA;
+					when "110010" => reg32 <= I_DATA;
+					when "110011" => reg33 <= I_DATA;
+					when "110100" => reg34 <= I_DATA;
+					when "110101" => reg35 <= I_DATA;
+					when "110110" => reg36 <= I_DATA;
+					when "110111" => reg37 <= I_DATA;
+					when "111000" => reg38 <= I_DATA;
+					when "111001" => reg39 <= I_DATA;
+					when "111010" => reg3a <= I_DATA;
+					when "111011" => reg3b <= I_DATA;
+					when "111100" => reg3c <= I_DATA;
+					when "111101" => reg3d <= I_DATA;
+					when "111110" => reg3e <= I_DATA;
+					when "111111" => reg3f <= I_DATA;
 					when others => null;
 				end case;
 			end if;
-			if b_reg(7) = '0' and ENA = '1' then
+			if b_reg(7) = '0' and I_ENA = '1' then
 				if pre_scaler /= X"000000" then
 					pre_scaler <= pre_scaler - 1;
 					a_reg(7) <= '0';
@@ -377,7 +377,7 @@ begin
 										(month_reg & days_reg = X"061E") or
 										(month_reg & days_reg = X"091E") or
 										(month_reg & days_reg = X"0B1E") or
-										(			 days_reg = X"1F")) then
+										(	     days_reg = X"1F")) then
 										days_reg <= x"01";
 										if month_reg /= x"0C" then
 											month_reg <= month_reg + 1;
