@@ -1,4 +1,4 @@
--------------------------------------------------------------------[10.09.2015]
+-------------------------------------------------------------------[01.01.2016]
 -- zx
 -------------------------------------------------------------------------------
 -- Engineer: 	MVV
@@ -54,6 +54,13 @@ port (
 	I_KEYBOARD_FN	: in  std_logic_vector(12 downto 1);
 	I_KEYBOARD_JOY	: in  std_logic_vector(4 downto 0);
 	I_KEYBOARD_SOFT	: in  std_logic_vector(2 downto 0);
+	I_KEY0		: in std_logic_vector(7 downto 0);
+	I_KEY1		: in std_logic_vector(7 downto 0);
+	I_KEY2		: in std_logic_vector(7 downto 0);
+	I_KEY3		: in std_logic_vector(7 downto 0);
+	I_KEY4		: in std_logic_vector(7 downto 0);
+	I_KEY5		: in std_logic_vector(7 downto 0);
+	I_KEY6		: in std_logic_vector(7 downto 0);
 	-- Mouse
 	I_MOUSE_X	: in  std_logic_vector(7 downto 0);
 	I_MOUSE_Y	: in  std_logic_vector(7 downto 0);
@@ -266,7 +273,7 @@ port map (
 
 -------------------------------------------------------------------------------
 -- Регистры
-process (I_RESET, I_CPU_CLK, I_SEL, cpu_a_bus, port_0000_reg, cpu_mreq_n, cpu_wr_n, cpu_do_bus, port_0001_reg)
+process (I_RESET, I_CPU_CLK, cpu_a_bus, port_0000_reg, cpu_mreq_n, cpu_wr_n, cpu_do_bus, port_0001_reg)
 begin
 	if (I_RESET = '1') then
 		port_0000_reg <= "00011111";		-- маска по AND порта #DFFD (4MB)
@@ -383,7 +390,7 @@ end process;
 
 -------------------------------------------------------------------------------
 -- Шина данных cpu
-process (selector, I_ROM_DATA, I_RAM_DATA, I_SPI_DATA, I_SPI_BUSY, I_I2C_DATA, mc146818_do_bus, I_KEYBOARD_DATA, I_ZC_DATA, I_KEYBOARD_JOY, ssg_cn0_bus, ssg_cn1_bus, divmmc_do, port_7ffd_reg, port_dffd_reg, I_VIDEO_ATTR, I_DMASOUND_DATA, I_MOUSE_BUTTONS, I_MOUSE_X, I_MOUSE_Y, I_MOUSE_Z)
+process (selector, I_ROM_DATA, I_RAM_DATA, I_SPI_DATA, I_SPI_BUSY, I_I2C_DATA, mc146818_do_bus, I_KEYBOARD_DATA, I_ZC_DATA, I_KEYBOARD_JOY, ssg_cn0_bus, ssg_cn1_bus, divmmc_do, port_7ffd_reg, port_dffd_reg, I_VIDEO_ATTR, I_DMASOUND_DATA, I_MOUSE_BUTTONS, I_MOUSE_X, I_MOUSE_Y, I_MOUSE_Z, I_KEY0, I_KEY1, I_KEY2, I_KEY3, I_KEY4, I_KEY5, I_KEY6)
 begin
 	case selector is
 		when "00000" => cpu_di_bus <= I_ROM_DATA;
@@ -405,29 +412,43 @@ begin
 		when "10000" => cpu_di_bus <= I_MOUSE_Z & '1' & not I_MOUSE_BUTTONS;
 		when "10001" => cpu_di_bus <= I_MOUSE_X;
 		when "10010" => cpu_di_bus <= not I_MOUSE_Y;
+		when "10011" => cpu_di_bus <= I_KEY0;
+		when "10100" => cpu_di_bus <= I_KEY1;
+		when "10101" => cpu_di_bus <= I_KEY2;
+		when "10110" => cpu_di_bus <= I_KEY3;
+		when "10111" => cpu_di_bus <= I_KEY4;
+		when "11000" => cpu_di_bus <= I_KEY5;
+		when "11001" => cpu_di_bus <= I_KEY6;
 		when others  => cpu_di_bus <= (others => '1');
 	end case;
 end process;
 
 selector <= 	"00000" when (cpu_mreq_n = '0' and cpu_rd_n = '0' and cpu_a_bus(15 downto 14) = "00" and loader_act = '1') else					-- ROM
 		"00001" when (cpu_mreq_n = '0' and cpu_rd_n = '0') else 											-- RAM
-		"00010" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus( 7 downto 0) = X"02" and I_SEL = '1') else					-- SPI
-		"00011" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus( 7 downto 0) = X"03" and I_SEL = '1') else					-- SPI
-		"00100" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus( 7 downto 5) = "100" and cpu_a_bus(3 downto 0) = "1100" and I_SEL = '1') else 	-- I2C
+		"00010" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus(7 downto 0) = X"02" and I_SEL = '1') else					-- SPI
+		"00011" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus(7 downto 0) = X"03" and I_SEL = '1') else					-- SPI
+		"00100" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus(7 downto 5) = "100" and cpu_a_bus(3 downto 0) = "1100" and I_SEL = '1') else 	-- I2C
 		"00101" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and port_bff7 = '1' and port_eff7_reg(7) = '1') else 						-- MC146818A
-		"00110" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus( 7 downto 0) = X"FE" and I_SEL = '1') else 					-- Клавиатура, порт xxFE
-		"00111" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus( 7 downto 6) = "01" and cpu_a_bus(4 downto 0) = "10111" and I_SEL = '1') else 	-- Z-Controller
-		"01000" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus( 7 downto 0) = X"1F" and dos_act = '0') else 					-- Joystick, порт xx1F
-		"01001" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus(15 downto 0) = X"FFFD" and ssg_sel = '0') else 					-- TurboSound
-		"01010" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus(15 downto 0) = X"FFFD" and ssg_sel = '1') else					-- TurboSound
-		"01011" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus( 7 downto 0) = X"EB" and kb_fn(6) = '1') else					-- DivMMC
-		"01100" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus(15 downto 0) = X"7FFD") else							-- чтение порта 7FFD
-		"01101" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus(15 downto 0) = X"DFFD") else							-- чтение порта DFFD
-		"01110" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus( 7 downto 0) = X"FF" and dos_act = '0' and I_VIDEO_BORDER = '1') else		-- порт атрибутов #FF
-		"01111" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus( 7 downto 0) = X"50") else							-- DMA Sound
-		"10000" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus(15 downto 0) = X"FADF" and I_SEL = '1') else					-- Mouse Buttons
-		"10001" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus(15 downto 0) = X"FBDF" and I_SEL = '1') else					-- Mouse X
-		"10010" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus(15 downto 0) = X"FFDF" and I_SEL = '1') else					-- Mouse Y
+		"00110" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus(7 downto 0) = X"FE" and I_SEL = '1') else 					-- Клавиатура, порт xxFE
+		"00111" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus(7 downto 6) = "01" and cpu_a_bus(4 downto 0) = "10111" and I_SEL = '1') else 	-- Z-Controller
+		"01000" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus(7 downto 0) = X"1F" and dos_act = '0') else 					-- Joystick, порт xx1F
+		"01001" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus = X"FFFD" and ssg_sel = '0') else 						-- TurboSound
+		"01010" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus = X"FFFD" and ssg_sel = '1') else						-- TurboSound
+		"01011" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus(7 downto 0) = X"EB" and kb_fn(6) = '1') else					-- DivMMC
+		"01100" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus = X"7FFD") else									-- чтение порта 7FFD
+		"01101" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus = X"DFFD") else									-- чтение порта DFFD
+		"01110" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus(7 downto 0) = X"FF" and dos_act = '0' and I_VIDEO_BORDER = '1') else		-- порт атрибутов #FF
+		"01111" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus(7 downto 0) = X"50") else							-- DMA Sound
+		"10000" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus = X"FADF" and I_SEL = '1') else							-- Mouse Buttons
+		"10001" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus = X"FBDF" and I_SEL = '1') else							-- Mouse X
+		"10010" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus = X"FFDF" and I_SEL = '1') else							-- Mouse Y
+		"10011" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus = X"0007" and loader_act = '1' and I_SEL = '1') else				-- Key0
+		"10100" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus = X"0107" and loader_act = '1' and I_SEL = '1') else				-- Key1
+		"10101" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus = X"0207" and loader_act = '1' and I_SEL = '1') else				-- Key2
+		"10110" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus = X"0307" and loader_act = '1' and I_SEL = '1') else				-- Key3
+		"10111" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus = X"0407" and loader_act = '1' and I_SEL = '1') else				-- Key4
+		"11000" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus = X"0507" and loader_act = '1' and I_SEL = '1') else				-- Key5
+		"11001" when (cpu_iorq_n = '0' and cpu_rd_n = '0' and cpu_a_bus = X"0607" and loader_act = '1' and I_SEL = '1') else				-- Key6		
 		(others => '1');
 
 cpu_reset_n 	<= '0' when (I_RESET = '1' or reset = '1' or (I_KEYBOARD_FN(12) = '1' and I_SEL = '1')) else '1';	-- CPU сброс

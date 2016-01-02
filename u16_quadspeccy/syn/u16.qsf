@@ -36,12 +36,12 @@
 # -------------------------------------------------------------------------- #
 
 
-set_global_assignment -name DEVICE EP4CE22E22C7
+set_global_assignment -name DEVICE EP4CE22E22C8
 set_global_assignment -name FAMILY "Cyclone IV E"
 set_global_assignment -name TOP_LEVEL_ENTITY speccy
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 9.1
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "21:06:17  SEPTEMBER 11, 2011"
-set_global_assignment -name LAST_QUARTUS_VERSION "13.0 SP1.DP6"
+set_global_assignment -name LAST_QUARTUS_VERSION 15.0.0
 set_global_assignment -name USE_GENERATED_PHYSICAL_CONSTRAINTS OFF -section_id eda_blast_fpga
 set_global_assignment -name CYCLONEII_OPTIMIZATION_TECHNIQUE BALANCED
 set_global_assignment -name DEVICE_FILTER_PACKAGE TQFP
@@ -72,7 +72,7 @@ set_global_assignment -name USE_SIGNALTAP_FILE stp1.stp
 set_instance_assignment -name IO_STANDARD LVDS_E_3R -to HDMI_CLK
 set_instance_assignment -name IO_STANDARD LVDS_E_3R -to HDMI_D0
 set_instance_assignment -name IO_STANDARD LVDS_E_3R -to HDMI_D2
-set_global_assignment -name DEVICE_FILTER_SPEED_GRADE 7
+set_global_assignment -name DEVICE_FILTER_SPEED_GRADE 8
 set_location_assignment PIN_6 -to ASDO
 set_location_assignment PIN_13 -to DATA0
 set_location_assignment PIN_12 -to DCLK
@@ -147,6 +147,7 @@ set_location_assignment PIN_66 -to DRAM_A[11]
 set_location_assignment PIN_65 -to DRAM_A[12]
 set_location_assignment PIN_51 -to USB_NCS
 set_location_assignment PIN_50 -to USB_SI
+set_global_assignment -name VERILOG_FILE ../rtl/hdmi/hdmidirect.v
 set_global_assignment -name VHDL_FILE ../rtl/zx/zx.vhd
 set_global_assignment -name VHDL_FILE ../rtl/dmasound/dmasound.vhd
 set_global_assignment -name VHDL_FILE ../rtl/dac/dac.vhd
@@ -157,7 +158,6 @@ set_global_assignment -name VHDL_FILE ../rtl/t80/T80s.vhd
 set_global_assignment -name VHDL_FILE ../rtl/hdmi/ram_scan.vhd
 set_global_assignment -name VHDL_FILE ../rtl/hdmi/serializer.vhd
 set_global_assignment -name VHDL_FILE ../rtl/hdmi/scan_converter.vhd
-set_global_assignment -name VHDL_FILE ../rtl/hdmi/hdmi.vhd
 set_global_assignment -name VHDL_FILE ../rtl/hdmi/encoder.vhd
 set_global_assignment -name VHDL_FILE ../rtl/divmmc/divmmc.vhd
 set_global_assignment -name VHDL_FILE ../rtl/speccy.vhd

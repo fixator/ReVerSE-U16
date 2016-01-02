@@ -1,5 +1,5 @@
--------------------------------------------------------------------[11.09.2015]
--- QuadSpeccy rev.20150911
+-------------------------------------------------------------------[01.01.2016]
+-- QuadSpeccy (build 20160101)
 -- DEVBOARD ReVerSE-U16 rev.C
 -------------------------------------------------------------------------------
 -- Engineer: 	MVV
@@ -9,6 +9,8 @@
 -- 14.03.2015	DMA Sound для CPU0 (тест)
 -- 20.03.2015	Stereo Adder (parallel) разделил, чтобы не ругался TimeQuset
 -- 11.09.2015	Kempston Mouse, переписан USB HID (автор Alexey Spirkov)
+-- 26.11.2015	HDMI audio
+-- 30.12.2015	в полноэкранном режиме слышен только звук выбранного окна
 -------------------------------------------------------------------------------
 --
 -- https://github.com/mvvproject/ReVerSE-U16/tree/master/u16_quadspeccy
@@ -142,6 +144,24 @@ end speccy;
 
 architecture rtl of speccy is
 
+component hdmidirect
+port (
+	pixclk		: in std_logic;		-- 27MHz
+	pixclk72	: in std_logic;		-- 135MHz
+	red		: in std_logic_vector(7 downto 0);
+	green		: in std_logic_vector(7 downto 0);
+	blue		: in std_logic_vector(7 downto 0);
+	hSync		: in std_logic;
+	vSync		: in std_logic;
+	CounterX	: in std_logic_vector(9 downto 0);
+	CounterY	: in std_logic_vector(9 downto 0);
+	DrawArea	: in std_logic;
+	SampleL		: in std_logic_vector(15 downto 0);
+	SampleR		: in std_logic_vector(15 downto 0);
+	tmds_d		: out std_logic_vector(2 downto 0)
+);
+end component;
+
 -- zx 0
 signal zx0_sel		: std_logic;
 signal zx0_cpu_do	: std_logic_vector(7 downto 0);
@@ -170,6 +190,7 @@ signal zx0_divmmc_cs	: std_logic;
 signal zx0_divmmc_sclk	: std_logic;
 signal zx0_divmmc_mosi	: std_logic;
 signal zx0_divmmc_sel	: std_logic;
+signal zx0_fx		: std_logic;
 signal zx0_ssg0_a	: std_logic_vector(7 downto 0);
 signal zx0_ssg0_b	: std_logic_vector(7 downto 0);
 signal zx0_ssg0_c	: std_logic_vector(7 downto 0);
@@ -208,6 +229,7 @@ signal zx1_divmmc_cs	: std_logic;
 signal zx1_divmmc_sclk	: std_logic;
 signal zx1_divmmc_mosi	: std_logic;
 signal zx1_divmmc_sel	: std_logic;
+signal zx1_fx		: std_logic;
 signal zx1_ssg0_a	: std_logic_vector(7 downto 0);
 signal zx1_ssg0_b	: std_logic_vector(7 downto 0);
 signal zx1_ssg0_c	: std_logic_vector(7 downto 0);
@@ -246,6 +268,7 @@ signal zx2_divmmc_cs	: std_logic;
 signal zx2_divmmc_sclk	: std_logic;
 signal zx2_divmmc_mosi	: std_logic;
 signal zx2_divmmc_sel	: std_logic;
+signal zx2_fx		: std_logic;
 signal zx2_ssg0_a	: std_logic_vector(7 downto 0);
 signal zx2_ssg0_b	: std_logic_vector(7 downto 0);
 signal zx2_ssg0_c	: std_logic_vector(7 downto 0);
@@ -284,6 +307,7 @@ signal zx3_divmmc_cs	: std_logic;
 signal zx3_divmmc_sclk	: std_logic;
 signal zx3_divmmc_mosi	: std_logic;
 signal zx3_divmmc_sel	: std_logic;
+signal zx3_fx		: std_logic;
 signal zx3_ssg0_a	: std_logic_vector(7 downto 0);
 signal zx3_ssg0_b	: std_logic_vector(7 downto 0);
 signal zx3_ssg0_c	: std_logic_vector(7 downto 0);
@@ -301,23 +325,34 @@ signal zx3_covox_right	: std_logic_vector(8 downto 0);
 -- Selector
 signal zx_sel		: std_logic_vector(1 downto 0) := "00";
 -- Keyboard
-signal kb_soft_bus	: std_logic_vector(2 downto 0);
+signal kb_soft_bus	: std_logic_vector(3 downto 0);
 signal kb_a_bus		: std_logic_vector(7 downto 0);
 signal kb_do_bus	: std_logic_vector(4 downto 0);
 signal kb_fn_bus	: std_logic_vector(12 downto 1);
 signal kb_joy_bus	: std_logic_vector(4 downto 0);
-signal key_temp		: std_logic_vector(2 downto 0);
-signal kb_soft		: std_logic_vector(2 downto 0);
+signal key_temp		: std_logic_vector(3 downto 0);
+signal kb_soft		: std_logic_vector(3 downto 0);
+signal key_scancode	: std_logic_vector(7 downto 0);
+signal kb_key0		: std_logic_vector(7 downto 0);
+signal kb_key1		: std_logic_vector(7 downto 0);
+signal kb_key2		: std_logic_vector(7 downto 0);
+signal kb_key3		: std_logic_vector(7 downto 0);
+signal kb_key4		: std_logic_vector(7 downto 0);
+signal kb_key5		: std_logic_vector(7 downto 0);
+signal kb_key6		: std_logic_vector(7 downto 0);
 -- Mouse
 signal ms_x		: std_logic_vector(7 downto 0);
 signal ms_y		: std_logic_vector(7 downto 0);
 signal ms_z		: std_logic_vector(7 downto 0);
 signal ms_b		: std_logic_vector(7 downto 0);
 -- Video
+signal video_hcnt	: std_logic_vector(9 downto 0);
+signal video_vcnt	: std_logic_vector(9 downto 0);
 signal video_hsync	: std_logic;
 signal video_vsync	: std_logic;
 signal video_blank	: std_logic;
 signal video_rgb	: std_logic_vector(5 downto 0);
+signal tmds_d		: std_logic_vector(2 downto 0);
 -- Z-Controller
 signal zc_a		: std_logic;
 signal zc_do_bus	: std_logic_vector(7 downto 0);
@@ -363,8 +398,8 @@ signal covox_sum_right	: std_logic_vector(9 downto 0);
 signal sum_left		: std_logic_vector(11 downto 0);
 signal sum_right	: std_logic_vector(11 downto 0);
 signal fx_sum		: std_logic_vector(2 downto 0);
-signal audio_l		: std_logic_vector(18 downto 0);
-signal audio_r		: std_logic_vector(18 downto 0);
+signal audio_l		: std_logic_vector(15 downto 0);
+signal audio_r		: std_logic_vector(15 downto 0);
 -- DMA Sound
 signal dmasound_left_out	: std_logic_vector(16 downto 0);
 signal dmasound_right_out	: std_logic_vector(16 downto 0);
@@ -407,21 +442,22 @@ port map (
 	c1		=> clk_28mhz,	-- 28.0 MHz
 	c2		=> clk_14mhz,	-- 14.0 MHz
 	c3		=> DRAM_CLK);	-- 84.0 MHz
+	
 -- PLL 1
 U1: entity work.altpll1
 port map (
 	areset		=> areset,
 	inclk0		=> CLK_50MHZ,
 	locked		=> locked1,
-	c0		=> clk_hdmi,	-- 125.0 MHz
-	c1		=> clk_vga );	--  25.0 MHz
+	c0		=> clk_hdmi,	-- 135.0 MHz
+	c1		=> clk_vga );	--  27.0 MHz
 
 -- ROM 1K
 U2: entity work.altram0
 port map (
 	clock_a		=> clk_84mhz,
 	clock_b		=> clk_84mhz,
-	address_a	=> zx0_cpu_a(10 downto 0),
+	address_a	=> zx0_cpu_a(9 downto 0),
 	address_b	=> (others => '0'),
 	data_a	 	=> (others => '0'),
 	data_b	 	=> (others => '0'),
@@ -467,26 +503,29 @@ port map (
 	--
 	I_SEL		=> zx_sel,
 	I_MODE		=> kb_soft(1),
+	O_HCNT		=> video_hcnt,
+	O_VCNT		=> video_vcnt,
 	O_BLANK		=> video_blank,
 	O_RGB		=> video_rgb,
 	O_HSYNC		=> video_hsync,
 	O_VSYNC		=> video_vsync);
 
 -- HDMI
-U4: entity work.hdmi
-port map(
-	I_CLK		=> clk_hdmi,
-	I_CLK_PIXEL	=> clk_vga,
-	I_R		=> video_rgb(5 downto 4) & video_rgb(5 downto 4) & video_rgb(5 downto 4) & video_rgb(5 downto 4),
-	I_G		=> video_rgb(3 downto 2) & video_rgb(3 downto 2) & video_rgb(3 downto 2) & video_rgb(3 downto 2),
-	I_B		=> video_rgb(1 downto 0) & video_rgb(1 downto 0) & video_rgb(1 downto 0) & video_rgb(1 downto 0),
-	I_BLANK		=> video_blank,
-	I_HSYNC		=> video_hsync,
-	I_VSYNC		=> video_vsync,
-	O_TMDS_D0	=> HDMI_D0,
-	O_TMDS_D1	=> HDMI_D1,
-	O_TMDS_D2	=> HDMI_D2,
-	O_TMDS_CLK	=> HDMI_CLK);
+U4: hdmidirect
+port map (
+	pixclk		=> clk_vga,		-- 27MHz
+	pixclk72	=> clk_hdmi,		-- 135MHz
+	red		=> video_rgb(5 downto 4) & video_rgb(5 downto 4) & video_rgb(5 downto 4) & video_rgb(5 downto 4),
+	green		=> video_rgb(3 downto 2) & video_rgb(3 downto 2) & video_rgb(3 downto 2) & video_rgb(3 downto 2),
+	blue		=> video_rgb(1 downto 0) & video_rgb(1 downto 0) & video_rgb(1 downto 0) & video_rgb(1 downto 0),
+	hSync		=> video_hsync,
+	vSync		=> video_vsync,
+	CounterX	=> video_hcnt,
+	CounterY	=> video_vcnt,
+	DrawArea	=> video_blank,
+	SampleL		=> audio_l,
+	SampleR		=> audio_r,
+	tmds_d		=> tmds_d);
 	
 -- USB HID
 U5: entity work.deserializer
@@ -502,6 +541,13 @@ port map(
 	O_MOUSE_Y		=> ms_y,
 	O_MOUSE_Z		=> ms_z,
 	O_MOUSE_BUTTONS		=> ms_b,
+	O_KEY0			=> kb_key0,
+	O_KEY1			=> kb_key1,
+	O_KEY2			=> kb_key2,
+	O_KEY3			=> kb_key3,
+	O_KEY4			=> kb_key4,
+	O_KEY5			=> kb_key5,
+	O_KEY6			=> kb_key6,
 	O_KEYBOARD_SCAN		=> kb_do_bus,
 	O_KEYBOARD_FKEYS	=> kb_fn_bus,
 	O_KEYBOARD_JOYKEYS	=> kb_joy_bus,
@@ -627,7 +673,7 @@ port map (
 -- Delta-Sigma
 U11: entity work.dac
 generic map (
-	msbi_g		=> 18)
+	msbi_g		=> 15)
 port map (
 	I_CLK  		=> clk_84mhz,
 	I_RESET		=> areset,
@@ -637,7 +683,7 @@ port map (
 -- Delta-Sigma
 U12: entity work.dac
 generic map (
-	msbi_g		=> 18)
+	msbi_g		=> 15)
 port map (
 	I_CLK  		=> clk_84mhz,
 	I_RESET 	=> areset,
@@ -686,7 +732,14 @@ port map (
 	I_KEYBOARD_DATA	=> kb_do_bus,
 	I_KEYBOARD_FN	=> kb_fn_bus,
 	I_KEYBOARD_JOY	=> kb_joy_bus,
-	I_KEYBOARD_SOFT	=> kb_soft_bus,
+	I_KEYBOARD_SOFT	=> kb_soft_bus(2 downto 0),
+	I_KEY0		=> kb_key0,
+	I_KEY1		=> kb_key1,
+	I_KEY2		=> kb_key2,
+	I_KEY3		=> kb_key3,
+	I_KEY4		=> kb_key4,
+	I_KEY5		=> kb_key5,
+	I_KEY6		=> kb_key6,
 	-- Mouse
 	I_MOUSE_X	=> ms_x,
 	I_MOUSE_Y	=> ms_y,
@@ -767,7 +820,14 @@ port map (
 	I_KEYBOARD_DATA	=> kb_do_bus,
 	I_KEYBOARD_FN	=> kb_fn_bus,
 	I_KEYBOARD_JOY	=> kb_joy_bus,
-	I_KEYBOARD_SOFT	=> kb_soft_bus,
+	I_KEYBOARD_SOFT	=> kb_soft_bus(2 downto 0),
+	I_KEY0		=> kb_key0,
+	I_KEY1		=> kb_key1,
+	I_KEY2		=> kb_key2,
+	I_KEY3		=> kb_key3,
+	I_KEY4		=> kb_key4,
+	I_KEY5		=> kb_key5,
+	I_KEY6		=> kb_key6,
 	-- Mouse
 	I_MOUSE_X	=> ms_x,
 	I_MOUSE_Y	=> ms_y,
@@ -848,7 +908,14 @@ port map (
 	I_KEYBOARD_DATA	=> kb_do_bus,
 	I_KEYBOARD_FN	=> kb_fn_bus,
 	I_KEYBOARD_JOY	=> kb_joy_bus,
-	I_KEYBOARD_SOFT	=> kb_soft_bus,
+	I_KEYBOARD_SOFT	=> kb_soft_bus(2 downto 0),
+	I_KEY0		=> kb_key0,
+	I_KEY1		=> kb_key1,
+	I_KEY2		=> kb_key2,
+	I_KEY3		=> kb_key3,
+	I_KEY4		=> kb_key4,
+	I_KEY5		=> kb_key5,
+	I_KEY6		=> kb_key6,
 	-- Mouse
 	I_MOUSE_X	=> ms_x,
 	I_MOUSE_Y	=> ms_y,
@@ -929,7 +996,14 @@ port map (
 	I_KEYBOARD_DATA	=> kb_do_bus,
 	I_KEYBOARD_FN	=> kb_fn_bus,
 	I_KEYBOARD_JOY	=> kb_joy_bus,
-	I_KEYBOARD_SOFT	=> kb_soft_bus,
+	I_KEYBOARD_SOFT	=> kb_soft_bus(2 downto 0),
+	I_KEY0		=> kb_key0,
+	I_KEY1		=> kb_key1,
+	I_KEY2		=> kb_key2,
+	I_KEY3		=> kb_key3,
+	I_KEY4		=> kb_key4,
+	I_KEY5		=> kb_key5,
+	I_KEY6		=> kb_key6,
 	-- Mouse
 	I_MOUSE_X	=> ms_x,
 	I_MOUSE_Y	=> ms_y,
@@ -1001,25 +1075,30 @@ DCLK <= spi_clk;
 
 -------------------------------------------------------------------------------
 -- Stereo Adder (parallel)
-zx0_ssg_left <= ("00" & zx0_ssg0_c) + ("00" & zx0_ssg0_b) + ("00" & zx0_ssg1_c) + ("00" & zx0_ssg1_b);
-zx1_ssg_left <= ("00" & zx1_ssg0_c) + ("00" & zx1_ssg0_b) + ("00" & zx1_ssg1_c) + ("00" & zx1_ssg1_b);
-zx2_ssg_left <= ("00" & zx2_ssg0_c) + ("00" & zx2_ssg0_b) + ("00" & zx2_ssg1_c) + ("00" & zx2_ssg1_b);
-zx3_ssg_left <= ("00" & zx3_ssg0_c) + ("00" & zx3_ssg0_b) + ("00" & zx3_ssg1_c) + ("00" & zx3_ssg1_b);
+zx0_ssg_left <= (others => '0') when (kb_soft(3) = '1' and zx_sel /= "00") else ("00" & zx0_ssg0_c) + ("00" & zx0_ssg0_b) + ("00" & zx0_ssg1_c) + ("00" & zx0_ssg1_b);
+zx1_ssg_left <= (others => '0') when (kb_soft(3) = '1' and zx_sel /= "01") else ("00" & zx1_ssg0_c) + ("00" & zx1_ssg0_b) + ("00" & zx1_ssg1_c) + ("00" & zx1_ssg1_b);
+zx2_ssg_left <= (others => '0') when (kb_soft(3) = '1' and zx_sel /= "10") else ("00" & zx2_ssg0_c) + ("00" & zx2_ssg0_b) + ("00" & zx2_ssg1_c) + ("00" & zx2_ssg1_b);
+zx3_ssg_left <= (others => '0') when (kb_soft(3) = '1' and zx_sel /= "11") else ("00" & zx3_ssg0_c) + ("00" & zx3_ssg0_b) + ("00" & zx3_ssg1_c) + ("00" & zx3_ssg1_b);
 
-zx0_ssg_right <= ("00" & zx0_ssg0_a) + ("00" & zx0_ssg0_b) + ("00" & zx0_ssg1_a) + ("00" & zx0_ssg1_b);
-zx1_ssg_right <= ("00" & zx1_ssg0_a) + ("00" & zx1_ssg0_b) + ("00" & zx1_ssg1_a) + ("00" & zx1_ssg1_b);
-zx2_ssg_right <= ("00" & zx2_ssg0_a) + ("00" & zx2_ssg0_b) + ("00" & zx2_ssg1_a) + ("00" & zx2_ssg1_b);
-zx3_ssg_right <= ("00" & zx3_ssg0_a) + ("00" & zx3_ssg0_b) + ("00" & zx3_ssg1_a) + ("00" & zx3_ssg1_b);
+zx0_ssg_right <= (others => '0') when (kb_soft(3) = '1' and zx_sel /= "00") else ("00" & zx0_ssg0_a) + ("00" & zx0_ssg0_b) + ("00" & zx0_ssg1_a) + ("00" & zx0_ssg1_b);
+zx1_ssg_right <= (others => '0') when (kb_soft(3) = '1' and zx_sel /= "01") else ("00" & zx1_ssg0_a) + ("00" & zx1_ssg0_b) + ("00" & zx1_ssg1_a) + ("00" & zx1_ssg1_b);
+zx2_ssg_right <= (others => '0') when (kb_soft(3) = '1' and zx_sel /= "10") else ("00" & zx2_ssg0_a) + ("00" & zx2_ssg0_b) + ("00" & zx2_ssg1_a) + ("00" & zx2_ssg1_b);
+zx3_ssg_right <= (others => '0') when (kb_soft(3) = '1' and zx_sel /= "11") else ("00" & zx3_ssg0_a) + ("00" & zx3_ssg0_b) + ("00" & zx3_ssg1_a) + ("00" & zx3_ssg1_b);
 
-zx0_covox_left <= ('0' & zx0_covox_c) + ('0' & zx0_covox_d);
-zx1_covox_left <= ('0' & zx1_covox_c) + ('0' & zx1_covox_d);
-zx2_covox_left <= ('0' & zx2_covox_c) + ('0' & zx2_covox_d);
-zx3_covox_left <= ('0' & zx3_covox_c) + ('0' & zx3_covox_d);
+zx0_covox_left <= (others => '0') when (kb_soft(3) = '1' and zx_sel /= "00") else ('0' & zx0_covox_c) + ('0' & zx0_covox_d);
+zx1_covox_left <= (others => '0') when (kb_soft(3) = '1' and zx_sel /= "01") else ('0' & zx1_covox_c) + ('0' & zx1_covox_d);
+zx2_covox_left <= (others => '0') when (kb_soft(3) = '1' and zx_sel /= "10") else ('0' & zx2_covox_c) + ('0' & zx2_covox_d);
+zx3_covox_left <= (others => '0') when (kb_soft(3) = '1' and zx_sel /= "11") else ('0' & zx3_covox_c) + ('0' & zx3_covox_d);
 
-zx0_covox_right <= ('0' & zx0_covox_a) + ('0' & zx0_covox_b);
-zx1_covox_right <= ('0' & zx1_covox_a) + ('0' & zx1_covox_b);
-zx2_covox_right <= ('0' & zx2_covox_a) + ('0' & zx2_covox_b);
-zx3_covox_right <= ('0' & zx3_covox_a) + ('0' & zx3_covox_b);
+zx0_covox_right <= (others => '0') when (kb_soft(3) = '1' and zx_sel /= "00") else ('0' & zx0_covox_a) + ('0' & zx0_covox_b);
+zx1_covox_right <= (others => '0') when (kb_soft(3) = '1' and zx_sel /= "01") else ('0' & zx1_covox_a) + ('0' & zx1_covox_b);
+zx2_covox_right <= (others => '0') when (kb_soft(3) = '1' and zx_sel /= "10") else ('0' & zx2_covox_a) + ('0' & zx2_covox_b);
+zx3_covox_right <= (others => '0') when (kb_soft(3) = '1' and zx_sel /= "11") else ('0' & zx3_covox_a) + ('0' & zx3_covox_b);
+
+zx0_fx <= '0' when (kb_soft(3) = '1' and zx_sel /= "00") else zx0_port_xxfe(4);
+zx1_fx <= '0' when (kb_soft(3) = '1' and zx_sel /= "01") else zx1_port_xxfe(4);
+zx2_fx <= '0' when (kb_soft(3) = '1' and zx_sel /= "10") else zx2_port_xxfe(4);
+zx3_fx <= '0' when (kb_soft(3) = '1' and zx_sel /= "11") else zx3_port_xxfe(4);
 
 ssg_sum_left  <= ('0' & zx0_ssg_left)  + ('0' & zx1_ssg_left)  + ('0' & zx2_ssg_left)  + ('0' & zx3_ssg_left);
 ssg_sum_right <= ('0' & zx0_ssg_right) + ('0' & zx1_ssg_right) + ('0' & zx2_ssg_right) + ('0' & zx3_ssg_right);
@@ -1027,13 +1106,13 @@ ssg_sum_right <= ('0' & zx0_ssg_right) + ('0' & zx1_ssg_right) + ('0' & zx2_ssg_
 covox_sum_left  <= ('0' & zx0_covox_left)  + ('0' & zx1_covox_left)  + ('0' & zx2_covox_left)  + ('0' & zx3_covox_left);
 covox_sum_right <= ('0' & zx0_covox_right) + ('0' & zx1_covox_right) + ('0' & zx2_covox_right) + ('0' & zx3_covox_right);
 
-fx_sum <= ("00" & zx0_port_xxfe(4)) + ("00" & zx1_port_xxfe(4)) + ("00" & zx2_port_xxfe(4)) + ("00" & zx3_port_xxfe(4));
+fx_sum <= ("00" & zx0_fx) + ("00" & zx1_fx) + ("00" & zx2_fx) + ("00" & zx3_fx);
 
 sum_left  <= ('0' & ssg_sum_left)  + ("00" & covox_sum_left);
 sum_right <= ('0' & ssg_sum_right) + ("00" & covox_sum_right);
 
-audio_l <= ("000" & fx_sum & "0000000000000") + ("00" & sum_left & "00000")  + ("00" & dmasound_left_out);
-audio_r <= ("000" & fx_sum & "0000000000000") + ("00" & sum_right & "00000") + ("00" & dmasound_right_out);
+audio_l <= ("000" & fx_sum & "0000000000") + ("00" & sum_left & "00")  + ("00" & dmasound_left_out(13 downto 0));
+audio_r <= ("000" & fx_sum & "0000000000") + ("00" & sum_right & "00") + ("00" & dmasound_right_out(13 downto 0));
 
 -- Stereo Adder (serial)
 --audio_l <= 	("00" & zx0_port_xxfe(4) & "0000000000000000") + ("00" & zx0_ssg0_c & "000000000") + ("00" & zx0_ssg0_b & "000000000") + ("00" & zx0_ssg1_c & "000000000") + ("00" & zx0_ssg1_b & "000000000") + ("00" & zx0_covox_c & "000000000") + ("00" & zx0_covox_d & "000000000") +
@@ -1197,7 +1276,11 @@ begin
 		when others => null;
 	end case;
 end process;
-	
+
+HDMI_D0		<= tmds_d(0);
+HDMI_D1		<= tmds_d(1);
+HDMI_D2		<= tmds_d(2);
+HDMI_CLK	<= clk_vga;
 HDMI_D1N 	<= '0';
 USB_NCS		<= '0';
 

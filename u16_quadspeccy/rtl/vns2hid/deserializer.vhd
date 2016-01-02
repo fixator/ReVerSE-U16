@@ -1,4 +1,4 @@
--------------------------------------------------------------------[11.09.2015]
+-------------------------------------------------------------------[01.01.2016]
 -- CONTROLLER USB HID scancode to Spectrum matrix conversion
 -------------------------------------------------------------------------------
 -- Engineer: 	MVV
@@ -21,10 +21,17 @@ port (
 	O_MOUSE_Y		: out std_logic_vector(7 downto 0);
 	O_MOUSE_Z		: out std_logic_vector(7 downto 0);
 	O_MOUSE_BUTTONS		: out std_logic_vector(7 downto 0);
+	O_KEY0			: out std_logic_vector(7 downto 0);
+	O_KEY1			: out std_logic_vector(7 downto 0);
+	O_KEY2			: out std_logic_vector(7 downto 0);
+	O_KEY3			: out std_logic_vector(7 downto 0);
+	O_KEY4			: out std_logic_vector(7 downto 0);
+	O_KEY5			: out std_logic_vector(7 downto 0);
+	O_KEY6			: out std_logic_vector(7 downto 0);
 	O_KEYBOARD_SCAN		: out std_logic_vector(4 downto 0);
 	O_KEYBOARD_FKEYS	: out std_logic_vector(12 downto 1);
 	O_KEYBOARD_JOYKEYS	: out std_logic_vector(4 downto 0);
-	O_KEYBOARD_CTLKEYS	: out std_logic_vector(2 downto 0));
+	O_KEYBOARD_CTLKEYS	: out std_logic_vector(3 downto 0));
 end deserializer;
 
 architecture rtl of deserializer is
@@ -40,6 +47,14 @@ architecture rtl of deserializer is
 	signal y		: std_logic_vector(8 downto 0) := "000000000";
 	signal z		: std_logic_vector(8 downto 0) := "111111111";
 	signal b		: std_logic_vector(7 downto 0) := "00000000";
+	
+	signal key0		: std_logic_vector(7 downto 0);
+	signal key1		: std_logic_vector(7 downto 0);
+	signal key2		: std_logic_vector(7 downto 0);
+	signal key3		: std_logic_vector(7 downto 0);
+	signal key4		: std_logic_vector(7 downto 0);
+	signal key5		: std_logic_vector(7 downto 0);
+	signal key6		: std_logic_vector(7 downto 0);
 	
 begin
 
@@ -67,8 +82,15 @@ begin
 	-- Keyboard
 	O_KEYBOARD_SCAN		<= row0 and row1 and row2 and row3 and row4 and row5 and row6 and row7;
 	O_KEYBOARD_JOYKEYS	<= keys(8);
-	O_KEYBOARD_CTLKEYS 	<= keys(11)(2) & keys(11)(3) & keys(11)(4);
+	O_KEYBOARD_CTLKEYS 	<= keys(10)(3) & keys(11)(2) & keys(11)(3) & keys(11)(4);
 	O_KEYBOARD_FKEYS	<= keys(11)(1) & keys(11)(0) & keys(10) & keys(9);
+	O_KEY0			<= key0;
+	O_KEY1			<= key1;
+	O_KEY2			<= key2;
+	O_KEY3			<= key3;
+	O_KEY4			<= key4;
+	O_KEY5			<= key5;
+	O_KEY6			<= key6;
 	-- Mouse
 	O_MOUSE_BUTTONS		<= b;
 	O_MOUSE_X		<= x(7 downto 0);
@@ -139,6 +161,17 @@ begin
 						end case;
 						
 					when x"6" =>	-- Keyboard
+						case count is
+							when 1 => key0 <= data;	-- клавиши модификаторы
+							when 3 => key1 <= data;	-- код клавиши 1
+							when 4 => key2 <= data;	-- код клавиши 2
+							when 5 => key3 <= data;	-- код клавиши 3
+							when 6 => key4 <= data;	-- код клавиши 4
+							when 7 => key5 <= data;	-- код клавиши 5
+							when 8 => key6 <= data;	-- код клавиши 6
+							when others => null;
+						end case;
+
 						if count = 1 then
 --							if data(0) = '1' then keys(11)(3) <= '1'; end if;	-- E0 Left Control
 							if data(1) = '1' then keys(0)(0) <= '0'; end if;	-- E1 Left shift (CAPS SHIFT)

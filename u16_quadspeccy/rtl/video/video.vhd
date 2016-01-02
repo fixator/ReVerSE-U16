@@ -1,10 +1,11 @@
--------------------------------------------------------------------[11.09.2015]
+-------------------------------------------------------------------[26.11.2015]
 -- Video
 -------------------------------------------------------------------------------
 -- Engineer: 	MVV
 --
 -- 25.02.2015	Initial
 -- 11.03.2015	Added full window mode and attr port #ff
+-- 26.11.2015	720x640@60Hz, HCNT, VCNT
 
 library IEEE; 
 use IEEE.std_logic_1164.all; 
@@ -47,6 +48,8 @@ port (
 	
 	I_SEL		: in std_logic_vector(1 downto 0);
 	I_MODE		: in std_logic := '0';
+	O_HCNT		: out std_logic_vector(9 downto 0);
+	O_VCNT		: out std_logic_vector(9 downto 0);
 	O_BLANK		: out std_logic;
 	O_RGB		: out std_logic_vector(5 downto 0);	-- RRGGBB
 	O_HSYNC		: out std_logic;
@@ -85,16 +88,16 @@ architecture rtl of video is
 
 -- VGA
 	-- Horizontal timing (line)
-	constant h_visible_area		: integer := 640;
-	constant h_front_porch		: integer := 24;
-	constant h_sync_pulse		: integer := 96;
-	constant h_back_porch		: integer := 40;
-	constant h_whole_line		: integer := 800;
+	constant h_visible_area		: integer := 720;--640;
+	constant h_front_porch		: integer := 16;--24;
+	constant h_sync_pulse		: integer := 62;--96;
+	constant h_back_porch		: integer := 60;--40;
+	constant h_whole_line		: integer := 858;--800;
 	-- Vertical timing (frame)	
 	constant v_visible_area		: integer := 480;
-	constant v_front_porch		: integer := 11;
-	constant v_sync_pulse		: integer := 2;
-	constant v_back_porch		: integer := 32;
+	constant v_front_porch		: integer := 9;--11;
+	constant v_sync_pulse		: integer := 6;--2;
+	constant v_back_porch		: integer := 30;--32;
 	constant v_whole_frame		: integer := 525;
 	-- Horizontal Timing constants  
 	constant h_pixels_across	: integer := h_visible_area - 1;
@@ -108,9 +111,9 @@ architecture rtl of video is
 	constant v_end_count		: integer := v_whole_frame - 1;
 	
 -- ZX-Spectum screen
-	constant spec_border_left	: natural :=  32;
+	constant spec_border_left	: natural :=  52;--32;
 	constant spec_screen_h		: natural := 256;
-	constant spec_border_right	: natural :=  32;
+	constant spec_border_right	: natural :=  52;--32;
 
 	constant spec_border_top	: natural :=  24;
 	constant spec_screen_v		: natural := 192;
@@ -228,10 +231,10 @@ temp_v		<= spec_v_count_reg(8 downto 0) when (I_MODE = '0') else spec_v_count_re
 paper		<= '1' when (temp_h < spec_screen_h and temp_v < spec_screen_v) else '0';
 
 vga_rgb <= 	(others => '0') when (blank_sig = '1') else
-		"001100" when ((h_count_reg < 320 and (v_count_reg = 0 or v_count_reg = 239)) or ((h_count_reg = 0 or h_count_reg = 319) and v_count_reg < 240)) and I_SEL = "00" and I_MODE = '0' else
-		"001100" when ((h_count_reg > 319 and (v_count_reg = 0 or v_count_reg = 239)) or ((h_count_reg = 320 or h_count_reg = 639) and v_count_reg < 240)) and I_SEL = "01" and I_MODE = '0' else
-		"001100" when ((h_count_reg < 320 and (v_count_reg = 240 or v_count_reg = 479)) or ((h_count_reg = 0 or h_count_reg = 319) and v_count_reg > 239)) and I_SEL = "10" and I_MODE = '0' else
-		"001100" when ((h_count_reg > 319 and (v_count_reg = 240 or v_count_reg = 479)) or ((h_count_reg = 320 or h_count_reg = 639) and v_count_reg > 239)) and I_SEL = "11" and I_MODE = '0' else
+		"001100" when ((h_count_reg < 360 and (v_count_reg = 0 or v_count_reg = 239)) or ((h_count_reg = 2 or h_count_reg = 359) and v_count_reg < 240)) and I_SEL = "00" and I_MODE = '0' else
+		"001100" when ((h_count_reg > 359 and (v_count_reg = 0 or v_count_reg = 239)) or ((h_count_reg = 360 or h_count_reg = 719) and v_count_reg < 240)) and I_SEL = "01" and I_MODE = '0' else
+		"001100" when ((h_count_reg < 360 and (v_count_reg = 240 or v_count_reg = 479)) or ((h_count_reg = 2 or h_count_reg = 359) and v_count_reg > 239)) and I_SEL = "10" and I_MODE = '0' else
+		"001100" when ((h_count_reg > 359 and (v_count_reg = 240 or v_count_reg = 479)) or ((h_count_reg = 360 or h_count_reg = 719) and v_count_reg > 239)) and I_SEL = "11" and I_MODE = '0' else
 		
 		attr_reg(4) & (attr_reg(4) and attr_reg(6)) & attr_reg(5) & (attr_reg(5) and attr_reg(6)) & attr_reg(3) & (attr_reg(3) and attr_reg(6)) when paper1 = '1' and (pixel xor (flash(4) and attr_reg(7))) = '0' else
 		attr_reg(1) & (attr_reg(1) and attr_reg(6)) & attr_reg(2) & (attr_reg(2) and attr_reg(6)) & attr_reg(0) & (attr_reg(0) and attr_reg(6)) when paper1 = '1' and (pixel xor (flash(4) and attr_reg(7))) = '1' else
@@ -322,5 +325,7 @@ O_RGB 		<= vga_rgb;
 O_HSYNC 	<= h_sync;
 O_VSYNC 	<= v_sync;
 O_BLANK		<= blank_sig;
+O_HCNT		<= h_count_reg;
+O_VCNT		<= v_count_reg;
 
 end architecture;
