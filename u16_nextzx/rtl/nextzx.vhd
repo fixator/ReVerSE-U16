@@ -1,10 +1,12 @@
--------------------------------------------------------------------[13.03.2016]
--- NextZX
+-------------------------------------------------------------------[30.03.2016]
+-- NextZX 48K
 -- DEVBOARD ReVerSE-U16 Rev.C
 -------------------------------------------------------------------------------
 -- Engineer: 	MVV
 --
 -- 13.03.2016	Initial release
+-- 29.03.2016	nZ80@42MHz, deserializer.vhd
+-- 30.03.2016	SDRAM
 -------------------------------------------------------------------------------
 -- github.com/mvvproject/ReVerSE-U16
 --
@@ -60,30 +62,23 @@ port (
 	-- USB VNC2
 	USB_NRESET	: in std_logic;
 	USB_TX		: in std_logic;
+	USB_NCS		: out std_logic := '0';
+	USB_SI		: in std_logic;
 	-- Audio
 	DAC_OUT_L	: out std_logic;
-	DAC_OUT_R	: out std_logic
-);
+	DAC_OUT_R	: out std_logic;
+	--- SDRAM
+	DRAM_CLK	: out std_logic;
+	DRAM_NRAS	: out std_logic;
+	DRAM_NCAS	: out std_logic;
+	DRAM_NWE	: out std_logic;
+	DRAM_DQM	: out std_logic_vector(1 downto 0);
+	DRAM_BA		: out std_logic_vector(1 downto 0);
+	DRAM_A		: out std_logic_vector(12 downto 0);
+	DRAM_DQ		: inout std_logic_vector(15 downto 0));
 end nextzx;
 
 architecture rtl of nextzx is
-
-component NextZ80 is
-port (
-	DI		: in std_logic_vector(7 downto 0);
-	DO		: out std_logic_vector(7 downto 0);
-	ADDR		: out std_logic_vector(15 downto 0);
-	WR		: out std_logic;
-	MREQ		: out std_logic;
-	IORQ		: out std_logic;
-	HALT		: out std_logic;
-	M1		: out std_logic;
-	CLK		: in std_logic;
-	RESET		: in std_logic;
-	INT		: in std_logic;
-	NMI		: in std_logic;
-	WAIT_I		: in std_logic);
-end component;
 
 -- CPU
 signal cpu_reset	: std_logic;
@@ -95,41 +90,48 @@ signal cpu_iorq		: std_logic;
 signal cpu_wr		: std_logic;
 signal cpu_int		: std_logic;
 signal cpu_m1		: std_logic;
---signal cpu_en		: std_logic;
+signal cpu_wait		: std_logic;
 signal cpu_nmi		: std_logic;
 -- Memory
-signal ram_data_o	: std_logic_vector(7 downto 0);
-signal ram_wr		: std_logic;
+signal rom_do		: std_logic_vector(7 downto 0);
+signal vram_wr		: std_logic;
 -- Port
 signal port_xxfe_reg	: std_logic_vector(7 downto 0);
--- PS/2 Keyboard
+-- Keyboard
 signal kb_do_bus	: std_logic_vector(4 downto 0);
-signal kb_f_bus		: std_logic_vector(12 downto 1);
+signal kb_fn_bus	: std_logic_vector(12 downto 1);
 signal kb_joy_bus	: std_logic_vector(4 downto 0);
 -- Video
 signal vga_addr		: std_logic_vector(12 downto 0);
 signal vga_data		: std_logic_vector(7 downto 0);
 signal vga_wr		: std_logic;
-signal vga_hsync	: std_logic;
-signal vga_vsync	: std_logic;
-signal vga_blank	: std_logic;
-signal vga_rgb		: std_logic_vector(5 downto 0);
-signal vga_int		: std_logic;
+signal vga_r		: std_logic_vector(1 downto 0);
+signal vga_g		: std_logic_vector(1 downto 0);
+signal vga_b		: std_logic_vector(1 downto 0);
+signal sync_hcnt	: std_logic_vector(9 downto 0);
+signal sync_vcnt	: std_logic_vector(9 downto 0);
+signal sync_hsync	: std_logic;
+signal sync_vsync	: std_logic;
+signal sync_blank	: std_logic;
+signal sync_int		: std_logic;
+signal sync_flash	: std_logic;
 -- CLOCK
-signal clk_bus		: std_logic;
-signal clk_vga		: std_logic;
-signal clk_cpu		: std_logic;
-signal clk_hdmi		: std_logic;
+signal clk_25m2hz	: std_logic;
+signal clk_126m0hz	: std_logic;
 -- System
 signal reset		: std_logic;
 signal areset		: std_logic;
-signal key_reset	: std_logic;
 signal locked		: std_logic;
 signal selector		: std_logic_vector(1 downto 0);
 signal key_f		: std_logic_vector(12 downto 1);
 signal key		: std_logic_vector(12 downto 1) := "000000000000";
 signal inta		: std_logic;
+signal cnt		: std_logic_vector(2 downto 0) := "110";
 
+signal sdram_do		: std_logic_vector(7 downto 0);
+signal sdram_req	: std_logic := '0';
+signal sdram_ack	: std_logic;
+signal state		: std_logic_vector(1 downto 0) := "00";
 
 begin
 
@@ -139,140 +141,232 @@ port map (
 	areset		=> areset,
 	locked		=> locked,
 	inclk0		=> CLK_50MHZ,			--  50.0 MHz
-	c0		=> clk_vga,			--  25.2 MHz
-	c1		=> clk_hdmi,			-- 126.0 MHz
-	c2		=> clk_bus,
-	c3		=> clk_cpu);			--  42.0 MHz
+	c0		=> clk_25m2hz,			--  25.2 MHz
+	c1		=> clk_126m0hz);		-- 126.0 MHz
 
--- RAM 64K
+-- ROM 16K
 U1: entity work.ram
 port map (
-	address_a	=> cpu_addr,
-	address_b	=> "010" & vga_addr,
-	clock_a		=> clk_bus,
-	clock_b		=> clk_vga,
-	data_a	 	=> cpu_do,
+	address_a	=> cpu_addr(13 downto 0),
+	address_b	=> (others => '0'),
+	clock_a		=> clk_126m0hz,
+	clock_b		=> clk_126m0hz,
+	data_a	 	=> (others => '0'),
 	data_b	 	=> (others => '0'),
-	wren_a	 	=> ram_wr,
+	wren_a	 	=> '0',
 	wren_b	 	=> '0',
-	q_a	 	=> ram_data_o,
-	q_b	 	=> vga_data);
+	q_a	 	=> rom_do,
+	q_b	 	=> open);
 	
 -- CPU
-U2: NextZ80
+U2: entity work.nz80cpu
 port map (
-	DI		=> cpu_di,			-- Data Bus In
-	DO		=> cpu_do,			-- Data Bus Out
-	ADDR		=> cpu_addr,			-- Address Bus
-	WR		=> cpu_wr,			-- Write=1/Read=0
-	MREQ		=> cpu_mreq,			-- Memory Request
-	IORQ		=> cpu_iorq,			-- Input/Output Request
-	HALT		=> open,			-- Halt State
-	M1		=> cpu_m1,			-- Machine Cycle 1
-	CLK		=> clk_cpu,			-- Clock
-	RESET		=> cpu_reset,			-- Reset (PC=0x0000, IFF1=0, IFF2=0, I=0, R=0, IM0)
-	INT		=> cpu_int,			-- Interrupt Request
-	NMI		=> cpu_nmi,			-- Non Maskable Interrupt
-	WAIT_I		=> '0');			-- Enable Clock
+	I_WAIT		=> cpu_wait,
+	I_RESET		=> cpu_reset,
+	I_CLK		=> clk_126m0hz,
+	I_NMI		=> cpu_nmi,
+	I_INT		=> cpu_int,
+	I_DATA		=> cpu_di,
+	O_DATA		=> cpu_do,
+	O_ADDR		=> cpu_addr,
+	O_M1		=> cpu_m1,
+	O_MREQ		=> cpu_mreq,
+	O_IORQ		=> cpu_iorq,
+	O_WR		=> cpu_wr,
+	O_HALT		=> open );
 
 -- Video
-U3: entity work.vga
+U3: entity work.vga_zx
 port map (
-	CLK_I		=> clk_vga,
-	DATA_I		=> vga_data,
-	BORDER_I	=> port_xxfe_reg(2 downto 0),	-- Биты D0..D2 порта xxFE определяют цвет бордюра
-	INT_O		=> vga_int,
-	ADDR_O		=> vga_addr,
-	BLANK_O		=> vga_blank,
-	RGB_O		=> vga_rgb,			-- RRGGBB
-	HSYNC_O		=> vga_hsync,
-	VSYNC_O		=> vga_vsync);
-	
--- Keyboard
-U4: entity work.keyboard
+	I_CLK		=> clk_25m2hz,
+	I_EN		=> '1',
+	I_DATA		=> vga_data,
+	I_BORDER	=> port_xxfe_reg(2 downto 0),	-- Биты D0..D2 порта xxFE определяют цвет бордюра
+	I_HCNT		=> sync_hcnt,
+	I_VCNT		=> sync_vcnt,
+	I_BLANK		=> sync_blank,
+	I_FLASH		=> sync_flash,
+	O_ADDR		=> vga_addr,
+	O_R		=> vga_r,
+	O_G		=> vga_g,
+	O_B		=> vga_b);
+
+-- USB HID
+U4: entity work.deserializer
+generic map (
+	divisor			=> 434)		-- divisor = 50MHz / 115200 Baud = 434
 port map(
-	CLK_I		=> CLK_50MHZ,
-	RESET_I		=> areset,
-	ADDR_I		=> cpu_addr(15 downto 8),
-	KEYB_O		=> kb_do_bus,
-	KEYF_O		=> kb_f_bus,
-	KEYJOY_O	=> kb_joy_bus,
-	KEYRESET_O	=> key_reset,
-	RX_I		=> USB_TX);
+	I_CLK			=> CLK_50MHZ,
+	I_RESET			=> areset,
+	I_RX			=> USB_TX,
+	I_NEWFRAME		=> USB_SI,
+	I_ADDR			=> cpu_addr(15 downto 8),
+	O_MOUSE_X		=> open,
+	O_MOUSE_Y		=> open,
+	O_MOUSE_Z		=> open,
+	O_MOUSE_BUTTONS		=> open,
+	O_KEY0			=> open,
+	O_KEY1			=> open,
+	O_KEY2			=> open,
+	O_KEY3			=> open,
+	O_KEY4			=> open,
+	O_KEY5			=> open,
+	O_KEY6			=> open,
+	O_KEYBOARD_SCAN		=> kb_do_bus,
+	O_KEYBOARD_FKEYS	=> kb_fn_bus,
+	O_KEYBOARD_JOYKEYS	=> kb_joy_bus,
+	O_KEYBOARD_CTLKEYS	=> open);	
 	
 -- Delta-Sigma
 U5: entity work.dac
 port map (
-	CLK_I  		=> clk_hdmi,
-	RESET_I		=> areset,
-	DAC_DATA_I	=> port_xxfe_reg(4) & '0',
-	DAC_O		=> DAC_OUT_L);
+	I_CLK		=> clk_126m0hz,
+	I_RESET		=> areset,
+	I_DAC_DATA	=> port_xxfe_reg(4) & '0',
+	O_DAC		=> DAC_OUT_L);
 
 -- Delta-Sigma
 U6: entity work.dac
 port map (
-	CLK_I		=> clk_hdmi,
-	RESET_I		=> areset,
-	DAC_DATA_I	=> port_xxfe_reg(4) & '0',
-	DAC_O		=> DAC_OUT_R);
+	I_CLK		=> clk_126m0hz,
+	I_RESET		=> areset,
+	I_DAC_DATA	=> port_xxfe_reg(4) & '0',
+	O_DAC		=> DAC_OUT_R);
 
 -- HDMI
 U7: entity work.hdmi
 port map(
-	CLK_DVI_I	=> clk_hdmi,
-	CLK_PIXEL_I	=> clk_vga,
-	R_I		=> vga_rgb(5 downto 4) & vga_rgb(5 downto 4) & vga_rgb(5 downto 4) & vga_rgb(5 downto 4),
-	G_I		=> vga_rgb(3 downto 2) & vga_rgb(3 downto 2) & vga_rgb(3 downto 2) & vga_rgb(3 downto 2),
-	B_I		=> vga_rgb(1 downto 0) & vga_rgb(1 downto 0) & vga_rgb(1 downto 0) & vga_rgb(1 downto 0),
-	BLANK_I		=> vga_blank,
-	HSYNC_I		=> vga_hsync,
-	VSYNC_I		=> vga_vsync,
-	TMDS_D0_O	=> HDMI_D0,
-	TMDS_D1_O	=> HDMI_D1,
-	TMDS_D2_O	=> HDMI_D2,
-	TMDS_CLK_O	=> HDMI_CLK);
+	I_CLK_DVI	=> clk_126m0hz,
+	I_CLK_PIXEL	=> clk_25m2hz,
+	I_R		=> vga_r & vga_r & vga_r & vga_r,
+	I_G		=> vga_g & vga_g & vga_g & vga_g,
+	I_B		=> vga_b & vga_b & vga_b & vga_b,
+	I_BLANK		=> sync_blank,
+	I_HSYNC		=> sync_hsync,
+	I_VSYNC		=> sync_vsync,
+	O_TMDS_D0	=> HDMI_D0,
+	O_TMDS_D1	=> HDMI_D1,
+	O_TMDS_D2	=> HDMI_D2,
+	O_TMDS_CLK	=> HDMI_CLK);
+
+-- Sync 640x480@60Hz Pixelclock=25.2MHz
+U8: entity work.sync
+port map (
+	I_CLK		=> clk_25m2hz,
+	I_EN		=> '1',
+	O_HCNT		=> sync_hcnt,
+	O_HCNT_REG	=> open,
+	O_VCNT		=> sync_vcnt,
+	O_INT		=> sync_int,
+	O_FLASH		=> sync_flash,
+	O_BLANK		=> sync_blank,
+	O_HSYNC		=> sync_hsync,
+	O_VSYNC		=> sync_vsync);
+	
+U9: entity work.sdram
+port map (
+	I_CLK		=> clk_126m0hz,
+	I_RESET		=> areset,
+	I_WR		=> cpu_wr,
+	I_REQ	 	=> sdram_req,
+	I_ADDR		=> "000000000" & cpu_addr,
+	I_DATA		=> cpu_do,
+	O_DATA	 	=> sdram_do,
+	O_ACK	 	=> sdram_ack,
+	-- SDRAM Pin
+	O_CLK		=> DRAM_CLK,
+	O_RAS_N		=> DRAM_NRAS,
+	O_CAS_N		=> DRAM_NCAS,
+	O_WE_N		=> DRAM_NWE,
+	O_DQM		=> DRAM_DQM,
+	O_BA		=> DRAM_BA,
+	O_MA		=> DRAM_A,
+	IO_DQ		=> DRAM_DQ);
+
+-- VRAM 8K
+U10: entity work.vram
+port map (
+	address_a	=> cpu_addr(12 downto 0),
+	address_b	=> vga_addr,
+	clock_a		=> clk_126m0hz,
+	clock_b		=> clk_25m2hz,
+	data_a	 	=> cpu_do,
+	data_b	 	=> (others => '0'),
+	wren_a	 	=> vram_wr,
+	wren_b	 	=> '0',
+	q_a	 	=> open,
+	q_b	 	=> vga_data);
 
 -------------------------------------------------------------------------------
 -- Формирование глобальных сигналов
---process (clk_bus)
---begin
---	if (clk_bus'event and clk_bus = '0') then
---		cpu_en <= not cpu_en;
---	end if;
---end process;
-
-process (clk_bus, inta)
+process (sync_int, inta)
 begin
-	if (inta = '1') then
+	if inta = '1' then
 		cpu_int <= '0';
-	elsif (clk_bus'event and clk_bus = '1') then
-		if (vga_int = '1') then cpu_int <= '1'; end if;
+	elsif sync_int'event and sync_int = '1' then
+		cpu_int <= '1';
 	end if;
 end process;
 
 areset		<= not USB_NRESET;			-- глобальный сброс
-reset		<= areset or key_reset or not locked;	-- горячий сброс
-cpu_reset	<= reset or kb_f_bus(4);		-- CPU сброс
+reset		<= areset or not locked;		-- горячий сброс
+cpu_reset	<= reset or kb_fn_bus(4);		-- CPU сброс
 inta		<= cpu_iorq and cpu_m1;			-- INTA
-cpu_nmi		<= kb_f_bus(5);				-- NMI
-ram_wr		<= '1' when (cpu_mreq = '1' and cpu_wr = '1' and cpu_addr(15 downto 14) /= "00") else '0';
+cpu_nmi		<= kb_fn_bus(5);			-- NMI
 
+vram_wr		<= '1' when cpu_mreq = '1' and cpu_wr = '1' and cpu_addr(15 downto 13) = "010" and cnt(2) = '0' else '0';
+
+
+cpu_wait <= cnt(2);
+
+
+process (clk_126m0hz)
+begin
+	if clk_126m0hz'event and clk_126m0hz = '1' then
+		case state is
+			when "00" =>
+				if cpu_mreq = '1' and cpu_addr(15 downto 14) /= "00" then 
+					sdram_req <= '1';
+					state <= "01";
+					cnt <= "111";
+				else
+					cnt <= cnt(1 downto 0) & cnt(2);
+				end if;
+			when "01" =>
+				if sdram_ack = '1' then
+					sdram_req <= '0';
+					state <= "10";
+				end if;
+			when "10" =>
+				if sdram_ack = '0' then
+					state <= "11";
+					cnt <= "011";
+				end if;
+			when "11" =>
+				cnt <= "110";
+				state <= "00";
+			when others => null;
+		end case;
+	end if;
+end process;
+	
+	
 -------------------------------------------------------------------------------
 -- Регистры
-process (reset, clk_bus, cpu_addr, port_xxfe_reg, cpu_wr, cpu_do)
+process (reset, clk_126m0hz, cpu_addr, port_xxfe_reg, cpu_wr, cpu_do)
 begin
-	if (clk_bus'event and clk_bus = '1') then
-		if (cpu_iorq = '1' and cpu_wr = '1' and cpu_addr(7 downto 0) = X"FE") then port_xxfe_reg <= cpu_do; end if;
+	if clk_126m0hz'event and clk_126m0hz = '1' then
+		if cpu_iorq = '1' and cpu_wr = '1' and cpu_addr(7 downto 0) = X"FE" then port_xxfe_reg <= cpu_do; end if;
 	end if;
 end process;
 
 -------------------------------------------------------------------------------
 -- Функциональные клавиши Fx
-process (clk_bus, key, kb_f_bus, key_f)
+process (clk_126m0hz, key, kb_fn_bus, key_f)
 begin
-	if (clk_bus'event and clk_bus = '1') then
-		key <= kb_f_bus;
-		if (kb_f_bus /= key) then
+	if clk_126m0hz'event and clk_126m0hz = '1' then
+		key <= kb_fn_bus;
+		if kb_fn_bus /= key then
 			key_f <= key_f xor key;
 		end if;
 	end if;
@@ -280,19 +374,21 @@ end process;
 
 -------------------------------------------------------------------------------
 -- Шина данных CPU
-process (selector, ram_data_o, kb_do_bus, kb_joy_bus)
+process (selector, rom_do, sdram_do, kb_do_bus, kb_joy_bus)
 begin
 	case selector is
-		when "00" => cpu_di <= ram_data_o;
-		when "01" => cpu_di <= "111" & kb_do_bus;
-		when "10" => cpu_di <= "000" & kb_joy_bus;
-		when others  => cpu_di <= (others => '1');
+		when "00" => cpu_di <= rom_do;
+		when "01" => cpu_di <= sdram_do;
+		when "10" => cpu_di <= "111" & kb_do_bus;
+		when "11" => cpu_di <= "000" & kb_joy_bus;
+		when others => cpu_di <= (others => '1');
 	end case;
 end process;
 
-selector <=	"00" when (cpu_mreq = '1' and cpu_wr = '0') else					-- RAM
-		"01" when (cpu_iorq = '1' and cpu_wr = '0' and cpu_addr(7 downto 0) = X"FE") else	-- Клавиатура, порт xxFE
-		"10" when (cpu_iorq = '1' and cpu_wr = '0' and cpu_addr(7 downto 0) = X"1F") else	-- Joystick, порт xx1F
+selector <=	"00" when cpu_mreq = '1' and cpu_wr = '0' and cpu_addr(15 downto 14) = "00" else	-- ROM
+		"01" when cpu_mreq = '1' and cpu_wr = '0' and cpu_addr(15 downto 14) /= "00" else	-- SDRAM
+		"10" when cpu_iorq = '1' and cpu_wr = '0' and cpu_addr(7 downto 0) = X"FE" else		-- Клавиатура, порт xxFE
+		"11" when cpu_iorq = '1' and cpu_wr = '0' and cpu_addr(7 downto 0) = X"1F" else		-- Joystick, порт xx1F
 		(others => '1');
 
 end rtl;
