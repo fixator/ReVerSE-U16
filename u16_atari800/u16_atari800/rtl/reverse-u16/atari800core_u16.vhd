@@ -1,12 +1,14 @@
--------------------------------------------------------------------[04.09.2015]
--- Atari800xl rev.20150904
+-------------------------------------------------------------------[26.06.2016]
+-- Atari800xl
 -------------------------------------------------------------------------------
--- Modified on ReVerSE-U16 Rev.C By MVV'2015
+-- Engeneer: MVV
+--
+-- Modified on ReVerSE-U16 rev.C By MVV'2015-2016
 -- https://github.com/mvvproject/ReVerSE-U16/tree/master/u16_atari800
-
+--
 -- Modified on ReVerSE-U16 By alsp'2015 
 -- https://github.com/fintros/atari800-u16
-
+--
 -- (c) 2013-14 Mark Watson
 -- I am happy for anyone to use these for non-commercial use.
 -- If my vhdl files are used commercially or sold please contact me for explicit permission at scrameta@gmail.com.
@@ -22,7 +24,7 @@ use IEEE.numeric_std.all;
 entity atari800core_u16 is
 generic
 (
-	TV			: integer := 0	-- 1 = PAL, 0=NTSC
+	TV			: integer := 1	-- 1 = PAL, 0=NTSC
 );
 port (
 	-- Clock (50MHz)
@@ -50,11 +52,7 @@ port (
 	-- HDMI
 --	HDMI_CEC		: inout std_logic;
 --	HDMI_DET_N		: in std_logic;
-	HDMI_D0			: out std_logic;
-	HDMI_D1			: out std_logic;
-	HDMI_D1N		: out std_logic := '0';
-	HDMI_D2			: out std_logic;
-	HDMI_CLK		: out std_logic;
+	TMDS			: out std_logic_vector(7 downto 0);
 	-- SD/MMC Memory Card
 --	SD_DET_N		: in std_logic;
 	SD_SO			: in std_logic;
@@ -292,25 +290,19 @@ port map(
 		HSYNC => VIDEO_HS,
 		BLANK => VIDEO_BLANK
 	);
-
-	
 	
 -- HDMI
 hdmi_out: entity work.hdmi
 port map(
-	CLK_DVI			=> CLK_HDMI_IN,
-	CLK_PIXEL		=> CLK_PIXEL_IN,
-	R			=> VIDEO_R,
-	G			=> VIDEO_G,
-	B			=> VIDEO_B,
-	BLANK			=> VIDEO_BLANK,
-	HSYNC			=> not VIDEO_HS,
-	VSYNC			=> not VIDEO_VS,
-	AUX			=> "000000000000",
-	TMDS_D0			=> HDMI_D0,
-	TMDS_D1			=> HDMI_D1,
-	TMDS_D2			=> HDMI_D2,
-	TMDS_CLK		=> HDMI_CLK);
+	I_CLK_PIXEL		=> CLK_PIXEL_IN,
+	I_CLK_TMDS		=> CLK_HDMI_IN,
+	I_HSYNC			=> not VIDEO_HS,
+	I_VSYNC			=> not VIDEO_VS,
+	I_BLANK			=> VIDEO_BLANK,
+	I_RED			=> VIDEO_R,
+	I_GREEN			=> VIDEO_G,
+	I_BLUE			=> VIDEO_B,
+	O_TMDS			=> TMDS);
 	
 -- Delta-Sigma
 U19: entity work.dac
@@ -327,7 +319,6 @@ port map (
 	RESET 			=> areset,
 	DAC_DATA		=> AUDIO_R_PCM,
 	DAC_OUT   		=> DN);
-
 	
 atari800_core : entity work.atari800core_simple_sdram
 generic map(
