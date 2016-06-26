@@ -1,4 +1,10 @@
 # Quad Speccy
+
+build 20160626:
+
+.доработан serializer для корректной работы дифпар TMDS, теперь собирается дифпара D1(HDMI_D1P, HDMI_D1N)
+
+
 build 20160101:
 
 .720x480@60Hz HDMI Audio 2Ch 32kHz

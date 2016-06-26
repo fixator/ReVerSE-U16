@@ -1,5 +1,5 @@
--------------------------------------------------------------------[01.01.2016]
--- QuadSpeccy (build 20160101)
+-------------------------------------------------------------------[26.06.2016]
+-- QuadSpeccy v2 (build 20160626)
 -- DEVBOARD ReVerSE-U16 rev.C
 -------------------------------------------------------------------------------
 -- Engineer: 	MVV
@@ -11,12 +11,12 @@
 -- 11.09.2015	Kempston Mouse, переписан USB HID (автор Alexey Spirkov)
 -- 26.11.2015	HDMI audio
 -- 30.12.2015	в полноэкранном режиме слышен только звук выбранного окна
+-- 26.06.2016	корректная работа дифпар TMDS
 -------------------------------------------------------------------------------
 --
 -- https://github.com/mvvproject/ReVerSE-U16/tree/master/u16_quadspeccy
--- http://zx-pk.ru/showthread.php?t=23528
-
--- Copyright (c) 2015 MVV
+--
+-- Copyright (c) 2015-2016 MVV
 --
 -- All rights reserved
 --
@@ -110,11 +110,7 @@ port (
 	-- HDMI
 --	HDMI_CEC	: inout std_logic;
 --	HDMI_NDET	: in std_logic;
-	HDMI_D0		: out std_logic;
-	HDMI_D1		: out std_logic;
-	HDMI_D1N	: out std_logic;
-	HDMI_D2		: out std_logic;
-	HDMI_CLK	: out std_logic;
+	TMDS		: out std_logic_vector(7 downto 0);
 	-- USB HOST (VNC2-32)
 	USB_NRESET	: in std_logic;
 	USB_TX		: in std_logic;
@@ -158,7 +154,7 @@ port (
 	DrawArea	: in std_logic;
 	SampleL		: in std_logic_vector(15 downto 0);
 	SampleR		: in std_logic_vector(15 downto 0);
-	tmds_d		: out std_logic_vector(2 downto 0)
+	tmds		: out std_logic_vector(7 downto 0)
 );
 end component;
 
@@ -525,7 +521,7 @@ port map (
 	DrawArea	=> video_blank,
 	SampleL		=> audio_l,
 	SampleR		=> audio_r,
-	tmds_d		=> tmds_d);
+	tmds		=> TMDS);
 	
 -- USB HID
 U5: entity work.deserializer
@@ -1277,12 +1273,7 @@ begin
 	end case;
 end process;
 
-HDMI_D0		<= tmds_d(0);
-HDMI_D1		<= tmds_d(1);
-HDMI_D2		<= tmds_d(2);
-HDMI_CLK	<= clk_vga;
-HDMI_D1N 	<= '0';
-USB_NCS		<= '0';
+USB_NCS	<= '0';
 
 	
 end rtl;

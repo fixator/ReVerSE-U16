@@ -1,6 +1,6 @@
  		DEVICE	ZXSPECTRUM48
-; -----------------------------------------------------------------[01.01.2016]
-; ReVerSE-U16 Setup (build 20160101) By MVV
+; -----------------------------------------------------------------[26.06.2016]
+; ReVerSE-U16 Setup By MVV
 ; -----------------------------------------------------------------------------
 
 system_port	equ #0001	; bit2 = (0:Loader ON, 1:Loader OFF); bit1 = (NC); bit0 = (0:M25P16, 1:ENC424J600)
@@ -1029,8 +1029,8 @@ Port_out
 str1	
 ;          "                                "
 	db 23,0,0,17,#47,"ReVerSE-U16 DevBoard",17,7
-	db 13,13,"FPGA SoftCore - Quad Speccy"
-	db 13,"(build 20160101) By MVV",0
+	db 13,13,"FPGA SoftCore - Quad Speccy v2"
+	db 13,"(build 20160626) By MVV",0
 str5	
 	db "Copying data from FLASH...",0
 str8
