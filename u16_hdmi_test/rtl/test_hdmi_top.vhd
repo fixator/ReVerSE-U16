@@ -1,4 +1,4 @@
--------------------------------------------------------------------[21.06.2016]
+-------------------------------------------------------------------[28.06.2016]
 -- Test HDMI
 -- DevBoard ReVerSE-U16 rev.C By MVV
 -------------------------------------------------------------------------------
@@ -123,11 +123,6 @@ port map (
 	I_BLUE		=> blue,
 	O_TMDS		=> TMDS);
 
--------------------------------------------------------------------------------
--- Author VGA test pattern By Mike Field <hamster@snap.net.nz>
--- http://hamsterworks.co.nz/mediawiki/index.php/Minimal_HDMI
--------------------------------------------------------------------------------
-
 	process (clk_vga, hcnt)
 	begin
 		if clk_vga'event and clk_vga = '1' then
@@ -151,8 +146,8 @@ port map (
 	vsync	<= '0' when (vcnt <= v_sync_on) or (vcnt > v_sync_off) else '1';
 	blank	<= '1' when (hcnt > h_pixels_across) or (vcnt > v_pixels_down) else '0';
 
-	red	<= (hcnt(7 downto 0) + shift) and "11111111";
-	green	<= (vcnt(7 downto 0) + shift) and "11111111";
-	blue	<= (hcnt(7 downto 0) + vcnt(7 downto 0) - shift) and "11111111";
+	red	<= "11111111" when hcnt = 0 or hcnt = h_pixels_across or vcnt = 0 or vcnt = v_pixels_down else (hcnt(7 downto 0) + shift) and "11111111";
+	green	<= "11111111" when hcnt = 0 or hcnt = h_pixels_across or vcnt = 0 or vcnt = v_pixels_down else (vcnt(7 downto 0) + shift) and "11111111";
+	blue	<= "11111111" when hcnt = 0 or hcnt = h_pixels_across or vcnt = 0 or vcnt = v_pixels_down else (hcnt(7 downto 0) + vcnt(7 downto 0) - shift) and "11111111";
 
 end rtl;
