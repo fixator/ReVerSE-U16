@@ -1,20 +1,16 @@
 # Quad Speccy
 build 20160101:
-
-.720x480@60Hz HDMI Audio 2Ch 32kHz
-
-.F9=звук только в выбранном окне (по просьбе zaxon)
-
-.теперь Loader загружает Setup из SPIFLASH
-
+- 720x480@60Hz HDMI Audio 2Ch 32kHz
+- F9=звук только в выбранном окне (по просьбе zaxon)
+- теперь Loader загружает Setup из SPIFLASH
 
 build 20150911:
+- обновлена прошивка VNC2 (автор Alexey Spirkov)
+- добавил Kempston Mouse
 
-.обновлена прошивка VNC2 (автор Alexey Spirkov)
+Демонстрационное видео:
 
-.добавил Kempston Mouse
-
-Демонстрационное видео: https://www.youtube.com/watch?feature=player_embedded&v=Dpe38en248s
+![ReVerSE-U16 FPGA SoftCore - Quad Speccy v1.0](http://img.youtube.com/vi/Dpe38en248s/0.jpg)](http://www.youtube.com/watch?feature=player_embedded&v=Dpe38en248s)
 
 Поддержка проекта: http://zx-pk.ru/
 
