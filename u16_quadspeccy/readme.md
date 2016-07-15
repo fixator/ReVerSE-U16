@@ -10,7 +10,7 @@ build 20150911:
 
 Демонстрационное видео:
 
-![ReVerSE-U16 FPGA SoftCore - Quad Speccy v1.0](http://img.youtube.com/vi/Dpe38en248s/0.jpg)](http://www.youtube.com/watch?feature=player_embedded&v=Dpe38en248s)
+[![ReVerSE-U16 FPGA SoftCore - Quad Speccy v1.0](http://img.youtube.com/vi/Dpe38en248s/0.jpg)](http://www.youtube.com/watch?feature=player_embedded&v=Dpe38en248s)
 
 Поддержка проекта: http://zx-pk.ru/
 
