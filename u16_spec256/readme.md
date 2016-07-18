@@ -1,17 +1,11 @@
 #### SPEC256
 ![image](cybernoid256.jpg)
 
-SPEC256: http://www.emulatronia.com/emusdaqui/spec256/download-eng.htm
-
-игры: http://www.emulatronia.com/emusdaqui/spec256/download-eng.htm
-
-редактор: http://kolmck.net/apps/EmuZ/EmuZWin_Rus.htm
+- Эмулятор SPEC256 (Авторы - Iñigo Ayo Blázquez (код эмулятора) и David Goti (256-цветный режим) http://www.emulatronia.com/emusdaqui/spec256/download-eng.htm
+- Эмулятор EmuZWin (Автор - Владимир Кладов) который очень удобно использовать для адаптации игр http://www.worldofspectrum.org/emulators.html#pcwin
+- Адаптированные игры http://www.emulatronia.com/emusdaqui/spec256/download-eng.htm
 
 Главной особенностью является возможность запуска специальным образом адаптированных игр, графика которых заменена на 256-цветную. Раскрашивание графики в 256 цветов реализовано следующим образом - одновременно работают восемь компьютеров ZX Spectrum 48K, синхронно исполняющих одинаковый код. Графические данные в программах для каждого из компьютеров отличаются. При построении растра цвет точки определяется не битом в экранной области и атрибутом знакоместа, а байтом, составленным из одноимённых битов экранных областей разных компьютеров. Преимуществом такого подхода является возможность адаптации (раскрашивания) игр без переписывания или изменения их оригинального кода.
-
-Эмулятор SPEC256 (Авторы - Iñigo Ayo Blázquez (код эмулятора) и David Goti (256-цветный режим) emulatronia.com/emusdaqui/spec256/download-eng.htm
-Эмулятор EmuZWin (Автор - Владимир Кладов) который очень удобно использовать для адаптации игр worldofspectrum.org/emulators.html#pcwin
-Адаптированные игры emulatronia.com/emusdaqui/spec256/download-eng.htm
 
 Решил попробовать реализовать этот эмулятор в железе на плате ReVerSE-U16
 
