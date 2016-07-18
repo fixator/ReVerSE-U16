@@ -1,4 +1,4 @@
--------------------------------------------------------------------[21.06.2016]
+-------------------------------------------------------------------[29.06.2016]
 -- Spec256
 -- DEVBOARD ReVerSE-U16 Rev.C
 -------------------------------------------------------------------------------
@@ -160,7 +160,28 @@ signal sdram_wr		: std_logic;
 signal spi_busy		: std_logic;
 signal spi_do		: std_logic_vector(7 downto 0);
 signal spi_wr		: std_logic;
+-- Audio
+signal audio_l		: std_logic_vector(15 downto 0);
+signal audio_r		: std_logic_vector(15 downto 0);
 
+
+component hdmidirect
+port (
+	pixclk		: in std_logic;		-- 27MHz
+	pixclk72	: in std_logic;		-- 135MHz
+	red		: in std_logic_vector(7 downto 0);
+	green		: in std_logic_vector(7 downto 0);
+	blue		: in std_logic_vector(7 downto 0);
+	hSync		: in std_logic;
+	vSync		: in std_logic;
+	CounterX	: in std_logic_vector(9 downto 0);
+	CounterY	: in std_logic_vector(9 downto 0);
+	DrawArea	: in std_logic;
+	SampleL		: in std_logic_vector(15 downto 0);
+	SampleR		: in std_logic_vector(15 downto 0);
+	tmds		: out std_logic_vector(7 downto 0)
+);
+end component;
 
 begin
 
@@ -471,18 +492,34 @@ port map (
 	O_DAC		=> DAC_OUT_R);
 
 -- HDMI
-U14: entity work.hdmi
-port map(
-	I_CLK_PIXEL	=> clk_vga,
-	I_CLK_TMDS	=> clk_tmds,
-	I_HSYNC		=> sync_hsync,
-	I_VSYNC		=> sync_vsync,
-	I_BLANK		=> sync_blank,
-	I_RED		=> vga_r,
-	I_GREEN		=> vga_g,
-	I_BLUE		=> vga_b,
-	O_TMDS		=> TMDS );
+--U14: entity work.hdmi
+--port map(
+--	I_CLK_PIXEL	=> clk_vga,
+--	I_CLK_TMDS	=> clk_tmds,
+--	I_HSYNC		=> sync_hsync,
+--	I_VSYNC		=> sync_vsync,
+--	I_BLANK		=> sync_blank,
+--	I_RED		=> vga_r,
+--	I_GREEN		=> vga_g,
+--	I_BLUE		=> vga_b,
+--	O_TMDS		=> TMDS );
 
+U14: hdmidirect
+port map (
+	pixclk		=> clk_vga,		-- 27MHz
+	pixclk72	=> clk_tmds,		-- 135MHz
+	red		=> vga_r,
+	green		=> vga_g,
+	blue		=> vga_b,
+	hSync		=> sync_hsync,
+	vSync		=> sync_vsync,
+	CounterX	=> sync_hcnt,
+	CounterY	=> sync_vcnt,
+	DrawArea	=> sync_blank,
+	SampleL		=> audio_l,
+	SampleR		=> audio_r,
+	tmds		=> TMDS);
+	
 -- Sync
 U15: entity work.sync
 port map (
@@ -668,6 +705,9 @@ vram_wr		<= '1' when cpu_mreq_n = '0' and cpu_wr_n = '0' and cpu_addr(15 downto 
 sdram_wr	<= '1' when cpu_mreq_n = '0' and cpu_wr_n = '0' and (cpu_addr(15 downto 14) /= "00" or (port_xx00_reg(1) = '0' and loader = '1')) else '0';
 sdram_rd	<= '1' when cpu_mreq_n = '0' and cpu_rd_n = '0' and (cpu_addr(15 downto 10) /= "000000" or loader = '0') else '0';
 spi_wr		<= '1' when cpu_iorq_n = '0' and cpu_wr_n = '0' and cpu_addr(7 downto 1) = "0000001" else '0';
+
+audio_l		<= "0000" & port_xxfe_reg(4) & "00000000000";
+audio_r		<= "0000" & port_xxfe_reg(4) & "00000000000";
 
 -------------------------------------------------------------------------------
 -- Регистры
