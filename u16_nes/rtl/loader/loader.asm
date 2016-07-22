@@ -1,13 +1,13 @@
  		DEVICE	ZXSPECTRUM48
-; -----------------------------------------------------------------[17.02.2016]
+; -----------------------------------------------------------------[22.07.2016]
 ; ReVerSE-U16 NES Loader By MVV
 ; -----------------------------------------------------------------------------
 ; 29.11.2014	первая версия
 ; 08.11.2015	OSD буфер
 
-osd_buffer			equ #7800	; OSD buffer start address (2048 bytes length)
+osd_buffer			equ #1800	; OSD buffer start address (2048 bytes length)
 osd_buffer_size			equ 2048
-stack_top			equ #1300
+stack_top			equ #17FE
 
 port_00				equ #00		; sc spi port w/r
 port_01				equ #01		; data spi port	w/r
@@ -627,7 +627,7 @@ print_header
 ; x(0-41),y(0-7)
 ;		   "------------------------------------------"
 str1		db 23,0,0
-		db "[NES] (build 20160217) By MVV",13
+		db "[NES] (build 20160722) By MVV",13
 		db "Reset[Esc] OSD[Ins] HQ2x[Del] ROM[F1..F12]"
 		db "DJOY1: use arrow keys for D-Pad",23,7,3
 		db "A[A] B[S] Sel[Space] Start[Enter]",13
@@ -680,7 +680,7 @@ font	INCBIN "font.bin"
 
 header		db #0000,#0000,#0000,#0000
 	
-	savebin "loader.bin",startprog, 32768
+	savebin "loader.bin",startprog, 8192
 
 	display "osd_buffer start = ",/a, osd_buffer
 	display "font start = ",/a, font

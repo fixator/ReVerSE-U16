@@ -1,7 +1,11 @@
+// Modified for ReVerSE-U16 By MVV 26.06.2016
+
 // Charlie Cole 2015
 // HDMI output for Neo Geo MVS
 //   Originally based on fpga4fun.com HDMI/DVI sample code (c) fpga4fun.com & KNJN LLC 2013
 //   Added Neo Geo MVS input, scan doubling, HDMI data packets and audio
+
+// 720	480	60 Hz	31.4685 kHz	ModeLine "720x480" 27.00 720 736 798 858 480 489 495 525 -HSync -VSync
 
 module hdmidirect(
 	input pixclk,	// 27MHz
@@ -19,7 +23,7 @@ module hdmidirect(
 	input [15:0] SampleL,
 	input [15:0] SampleR,
 	
-	output [2:0] tmds_d
+	output [7:0] tmds
 );
 
 // Defines to do with video signal generation
@@ -246,17 +250,17 @@ begin
 				if (CounterX==(DATA_START+DATA_PREAMBLE+DATA_GUARDBAND-1))
 					sendRegenPacket<=0;
 			end else begin
-//				if (!CounterY[0]) begin
-//					packetHeader<=24'h0D0282;	// infoframe AVI packet
-//					// Byte0: Checksum
-//					// Byte1: 10 = 0(Y1:Y0=0 RGB)(A0=1 No active format)(B1:B0=00 No bar info)(S1:S0=00 No scan info)
-//					// Byte2: 2A = (C1:C0=0 No colorimetry)(M1:M0=2 16:9)(R3:R0=A 16:9)
-//					// Byte3: 00 = 0(SC1:SC0=0 No scaling)
-//					// Byte4: 03 = 0(VIC6:VIC0=3 720x480p)
-//					// Byte5: 00 = 0(PR5:PR0=0 No repeation)
-//					subpacket[0]<=56'h000003002A1032;
-//					subpacket[1]<=56'h00000000000000;
-//				end else begin
+				if (!CounterY[0]) begin
+					packetHeader<=24'h0D0282;	// infoframe AVI packet
+					// Byte0: Checksum
+					// Byte1: 10 = 0(Y1:Y0=0 RGB)(A0=1 No active format)(B1:B0=00 No bar info)(S1:S0=00 No scan info)
+					// Byte2: 2A = (C1:C0=0 No colorimetry)(M1:M0=2 16:9)(R3:R0=A 16:9)
+					// Byte3: 00 = 0(SC1:SC0=0 No scaling)
+					// Byte4: 03 = 0(VIC6:VIC0=3 720x480p)
+					// Byte5: 00 = 0(PR5:PR0=0 No repeation)
+					subpacket[0]<=56'h000003002A1032;
+					subpacket[1]<=56'h00000000000000;
+				end else begin
 					packetHeader<=24'h0A0184;	// infoframe audio packet
 					// Byte0: Checksum
 					// Byte1: 11 = (CT3:0=1 PCM)0(CC2:0=1 2ch)
@@ -265,7 +269,7 @@ begin
 					// Byte4-5: 00 Multichannel only (>2ch)
 					subpacket[0]<=56'h00000000001160;
 					subpacket[1]<=56'h00000000000000;
-//				end
+				end
 				subpacket[2]<=56'h00000000000000;
 				subpacket[3]<=56'h00000000000000;
 			end
@@ -348,9 +352,9 @@ end
 ////////////////////////////////////////////////////////////////////////
 
 wire [9:0] TMDS_red, TMDS_green, TMDS_blue;
-encoder encode_R(.CLK(pixclk), .DATA(red  ), .C(preamble[3:2]), .BLANK(DrawArea), .ENCODED(TMDS_red));
-encoder encode_G(.CLK(pixclk), .DATA(green), .C(preamble[1:0]), .BLANK(DrawArea), .ENCODED(TMDS_green));
-encoder encode_B(.CLK(pixclk), .DATA(blue ), .C({vSync,hSync}), .BLANK(DrawArea), .ENCODED(TMDS_blue));
+encoder encode_R(.I_CLK(pixclk), .I_VD(red  ), .I_CD(preamble[3:2]), .I_VDE(~DrawArea), .O_TMDS(TMDS_red));
+encoder encode_G(.I_CLK(pixclk), .I_VD(green), .I_CD(preamble[1:0]), .I_VDE(~DrawArea), .O_TMDS(TMDS_green));
+encoder encode_B(.I_CLK(pixclk), .I_VD(blue ), .I_CD({vSync,hSync}), .I_VDE(~DrawArea), .O_TMDS(TMDS_blue));
 
 wire [9:0] TERC4_red, TERC4_green, TERC4_blue;
 TERC4_encoder encode_R4(.clk(pixclk), .data(dataChannel2), .TERC(TERC4_red));
@@ -362,15 +366,33 @@ TERC4_encoder encode_B4(.clk(pixclk), .data(dataChannel0), .TERC(TERC4_blue));
 // Outputs the encoded video data as serial data across the HDMI bus
 ////////////////////////////////////////////////////////////////////////
 
-serializer tmds (
-	.tx_in		({TMDS_shift_red_delay[0],TMDS_shift_red_delay[1],TMDS_shift_red_delay[2],TMDS_shift_red_delay[3],TMDS_shift_red_delay[4],TMDS_shift_red_delay[5],TMDS_shift_red_delay[6],TMDS_shift_red_delay[7],TMDS_shift_red_delay[8],TMDS_shift_red_delay[9],
-                          TMDS_shift_green_delay[0],TMDS_shift_green_delay[1],TMDS_shift_green_delay[2],TMDS_shift_green_delay[3],TMDS_shift_green_delay[4],TMDS_shift_green_delay[5],TMDS_shift_green_delay[6],TMDS_shift_green_delay[7],TMDS_shift_green_delay[8],TMDS_shift_green_delay[9],
-	                  TMDS_shift_blue_delay[0],TMDS_shift_blue_delay[1],TMDS_shift_blue_delay[2],TMDS_shift_blue_delay[3],TMDS_shift_blue_delay[4],TMDS_shift_blue_delay[5],TMDS_shift_blue_delay[6],TMDS_shift_blue_delay[7],TMDS_shift_blue_delay[8],TMDS_shift_blue_delay[9]}),
-	.tx_inclock	(pixclk72),
-	.tx_syncclock	(pixclk),
-	.tx_out		(tmds_d)
+altddio_out1 ddio_inst (
+	.datain_h	({shift_r[0], !shift_r[0], shift_g[0], !shift_g[0], shift_b[0], !shift_b[0], pixclk, !pixclk}),
+	.datain_l	({shift_r[1], !shift_r[1], shift_g[1], !shift_g[1], shift_b[1], !shift_b[1], pixclk, !pixclk}),
+	.outclock	(pixclk72),
+	.dataout	(tmds)
 );
 
+reg [2:0] mod5;
+reg [9:0] shift_r, shift_g, shift_b;
+
+always @(posedge pixclk72)
+begin
+	if (mod5[2])
+	begin
+		mod5 <= 3'b000;
+		shift_r <= TMDS_shift_red_delay;
+		shift_g <= TMDS_shift_green_delay;
+		shift_b <= TMDS_shift_blue_delay;
+	end
+	else
+	begin
+		mod5 <= mod5 + 3'b001;
+		shift_r <= {2'b00, shift_r[9:2]};
+		shift_g <= {2'b00, shift_g[9:2]};
+		shift_b <= {2'b00, shift_b[9:2]};
+	end
+end
 
 reg [9:0] TMDS_shift_red_delay, TMDS_shift_green_delay, TMDS_shift_blue_delay;
 

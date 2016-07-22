@@ -1,10 +1,7 @@
--------------------------------------------------------------------[09.02.2016]
+-------------------------------------------------------------------[21.07.2016]
 -- OSD
 -------------------------------------------------------------------------------
 -- Engineer: 	MVV
---
--- 14.11.2015	Initial release
--------------------------------------------------------------------------------
 
 library IEEE; 
 use IEEE.std_logic_1164.all; 
@@ -14,8 +11,9 @@ use IEEE.numeric_std.all;
 entity osd is
 port (
 	I_RESET		: in std_logic;
-	I_CLK		: in std_logic;
+	I_CLK_VGA	: in std_logic;
 	I_CLK_CPU	: in std_logic;
+	I_CLK_BUS	: in std_logic;
 	I_KEY0		: in std_logic_vector(7 downto 0);
 	I_KEY1		: in std_logic_vector(7 downto 0);
 	I_KEY2		: in std_logic_vector(7 downto 0);
@@ -25,9 +23,9 @@ port (
 	I_KEY6		: in std_logic_vector(7 downto 0);
 	I_SPI_MISO	: in std_logic;
 	I_SPI1_MISO	: in std_logic;
-	I_RED		: in std_logic_vector(4 downto 0);
-	I_GREEN		: in std_logic_vector(4 downto 0);
-	I_BLUE		: in std_logic_vector(4 downto 0);
+	I_RED		: in std_logic_vector(7 downto 0);
+	I_GREEN		: in std_logic_vector(7 downto 0);
+	I_BLUE		: in std_logic_vector(7 downto 0);
 	I_HCNT		: in std_logic_vector(9 downto 0);
 	I_VCNT		: in std_logic_vector(9 downto 0);
 	I_DOWNLOAD_OK	: in std_logic;
@@ -78,8 +76,8 @@ signal int		: std_logic;
 
 constant OSD_INK	: std_logic_vector(2 downto 0) := "111";	-- RGB
 constant OSD_PAPER	: std_logic_vector(2 downto 0) := "011";	-- RGB
-constant OSD_H_ON	: std_logic_vector(9 downto 0) := "0010000000";	-- 128
-constant OSD_H_OFF	: std_logic_vector(9 downto 0) := "0110000000";	-- 384
+constant OSD_H_ON	: std_logic_vector(9 downto 0) := "0011101000";	-- 232
+constant OSD_H_OFF	: std_logic_vector(9 downto 0) := "0111101000";	-- 488
 constant OSD_V_ON	: std_logic_vector(9 downto 0) := "0010110000";	-- 176
 constant OSD_V_OFF	: std_logic_vector(9 downto 0) := "0100110000";	-- 304
 
@@ -89,7 +87,7 @@ u0: entity work.spi
 port map(
 	RESET		=> I_RESET,
 	CLK		=> I_CLK_CPU,
-	SCK		=> I_CLK,
+	SCK		=> I_CLK_BUS,
 	DI		=> cpu_do,
 	DO		=> spi_do,
 	WR		=> spi_wr,
@@ -116,10 +114,10 @@ port map(
 	
 u2: entity work.ram
 port map(
-	address_a 	=> cpu_addr(14 downto 0),
-	address_b	=> "1111" & osd_vcnt(6 downto 4) & osd_hcnt(7 downto 0),
-	clock_a	 	=> I_CLK,
-	clock_b		=> I_CLK_CPU,
+	address_a 	=> cpu_addr(12 downto 0),
+	address_b	=> "11" & osd_vcnt(6 downto 4) & osd_hcnt(7 downto 0),
+	clock_a	 	=> I_CLK_BUS,
+	clock_b		=> I_CLK_VGA,
 	data_a	 	=> cpu_do,
 	data_b		=> (others => '0'),
 	wren_a	 	=> ram_wr,
@@ -129,13 +127,15 @@ port map(
 
 -------------------------------------------------------------------------------
 -- CPU
-process (I_CLK, I_RESET, cpu_addr, cpu_iorq, cpu_wr)
+process (I_CLK_BUS, I_RESET, cpu_addr, cpu_iorq, cpu_wr)
 begin
 	if (I_RESET = '1') then
 		reg_0 <= (others => '1');
 		buttons <= (others => '0');
 		switches <= (others => '0');
-	elsif (I_CLK'event and I_CLK = '1') then
+		djoy1 <= (others => '0');
+		djoy2 <= (others => '0');
+	elsif (I_CLK_BUS'event and I_CLK_BUS = '1') then
 		if cpu_addr(7 downto 0) = X"00" and cpu_iorq = '1' and cpu_wr = '1' then reg_0 <= cpu_do; end if;
 		if cpu_addr(7 downto 0) = X"03" and cpu_iorq = '1' and cpu_wr = '1' then buttons <= cpu_do(1 downto 0); end if;
 		if cpu_addr(7 downto 0) = X"04" and cpu_iorq = '1' and cpu_wr = '1' then djoy1 <= cpu_do; end if;
@@ -173,11 +173,11 @@ ram_wr <= '1' when cpu_addr(15) = '0' and cpu_mreq = '1' and cpu_wr = '1' else '
 spi_wr <= '1' when cpu_addr(7 downto 0) = X"01" and cpu_iorq = '1' and cpu_wr = '1' else '0';
 
 -- INT
-process (I_CLK, cpu_iorq, m1, I_VCNT)
+process (I_CLK_BUS, cpu_iorq, m1, I_VCNT)
 begin
 	if (cpu_iorq = '1' and m1 = '1') then
 		int <= '0';
-	elsif (I_CLK'event and I_CLK = '1') then
+	elsif (I_CLK_BUS'event and I_CLK_BUS = '1') then
 		if (I_VCNT = "0000000000") then
 			int <= '1';
 		end if;
@@ -197,9 +197,9 @@ O_JOYPAD_KEYS <= djoy2 & djoy1;
 
 -------------------------------------------------------------------------------
 -- OSD
-process (I_CLK_CPU)
+process (I_CLK_VGA)
 begin
-	if (I_CLK_CPU'event and I_CLK_CPU = '1') then
+	if (I_CLK_VGA'event and I_CLK_VGA = '1') then
 		if (I_HCNT = OSD_H_ON) then osd_h_active <= '1'; end if;
 		if (I_HCNT = OSD_H_OFF) then osd_h_active <= '0'; end if;
 		if (I_VCNT = OSD_V_ON) then osd_v_active <= '1'; end if;
@@ -226,8 +226,8 @@ begin
 	end case;
 end process;
 		
-O_RED <= (others => OSD_INK(2)) when osd_pixel = '1' and osd_de = '1' else '0' & OSD_PAPER(2) & I_RED(4 downto 0) & '0' when osd_de = '1' else I_RED & "000";
-O_GREEN <= (others => OSD_INK(1)) when osd_pixel = '1' and osd_de = '1' else '0' & OSD_PAPER(1) & I_GREEN(4 downto 0) & '0' when osd_de = '1' else I_GREEN & "000";
-O_BLUE <= (others => OSD_INK(0)) when osd_pixel = '1' and osd_de = '1' else '0' & OSD_PAPER(0) & I_BLUE(4 downto 0) & '0' when osd_de = '1' else I_BLUE & "000";
+O_RED <= (others => OSD_INK(2)) when osd_pixel = '1' and osd_de = '1' else '0' & OSD_PAPER(2) & I_RED(4 downto 0) & '0' when osd_de = '1' else I_RED;
+O_GREEN <= (others => OSD_INK(1)) when osd_pixel = '1' and osd_de = '1' else '0' & OSD_PAPER(1) & I_GREEN(4 downto 0) & '0' when osd_de = '1' else I_GREEN;
+O_BLUE <= (others => OSD_INK(0)) when osd_pixel = '1' and osd_de = '1' else '0' & OSD_PAPER(0) & I_BLUE(4 downto 0) & '0' when osd_de = '1' else I_BLUE;
 
 end rtl;
