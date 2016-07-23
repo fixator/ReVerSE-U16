@@ -1,7 +1,7 @@
 // Copyright (c) 2012-2013 Ludvig Strigeus
 // This program is GPL Licensed. See COPYING for the full license.
 //
-// Modified for ReVerSE-U16 By MVV (build 20160722)
+// Modified for ReVerSE-U16 By MVV (build 20160723)
 
 module NES_u16(	
 	// clock input
@@ -183,17 +183,6 @@ module NES_u16(
 		.SampleR	({sample[15:8],4'b0000}),
 		.tmds		(TMDS));
 
-//	hdmi U4(
-//		.I_CLK_PIXEL	(clk_vga),
-//		.I_CLK_TMDS	(clk_dvi),
-//		.I_RED		(osd_red),
-//		.I_GREEN	(osd_green),
-//		.I_BLUE		(osd_blue),
-//		.I_HSYNC	(vga_hs),
-//		.I_VSYNC	(vga_vs),
-//		.I_BLANK	(vga_blank),
-//		.O_TMDS		(TMDS));
-		
 	hid U5(
 		.I_CLK		(CLOCK_50),
 		.I_RESET	(!KEY_RESET),

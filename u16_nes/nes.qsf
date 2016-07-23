@@ -154,7 +154,6 @@ set_location_assignment PIN_113 -to TMDS[1]
 set_location_assignment PIN_112 -to TMDS[0]
 set_global_assignment -name ENABLE_OCT_DONE OFF
 set_global_assignment -name VERILOG_FILE rtl/hdmi/hdmidirect.v
-set_global_assignment -name VHDL_FILE rtl/hdmi/hdmi.vhd
 set_global_assignment -name QIP_FILE rtl/hdmi/altddio_out1.qip
 set_global_assignment -name QIP_FILE rtl/memory/framebuffer.qip
 set_global_assignment -name VERILOG_FILE rtl/pll/clk.v
@@ -169,7 +168,6 @@ set_global_assignment -name VERILOG_FILE src/ppu.v
 set_global_assignment -name VERILOG_FILE src/nes.v
 set_global_assignment -name VERILOG_FILE src/mmu.v
 set_global_assignment -name VERILOG_FILE src/MicroCode.v
-set_global_assignment -name VERILOG_FILE src/hq2x.v
 set_global_assignment -name VERILOG_FILE src/dsp.v
 set_global_assignment -name VERILOG_FILE src/cpu.v
 set_global_assignment -name VERILOG_FILE src/compat.v

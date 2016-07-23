@@ -1,5 +1,5 @@
  		DEVICE	ZXSPECTRUM48
-; -----------------------------------------------------------------[22.07.2016]
+; -----------------------------------------------------------------[23.07.2016]
 ; ReVerSE-U16 NES Loader By MVV
 ; -----------------------------------------------------------------------------
 ; 29.11.2014	первая версия
@@ -627,12 +627,12 @@ print_header
 ; x(0-41),y(0-7)
 ;		   "------------------------------------------"
 str1		db 23,0,0
-		db "[NES] (build 20160722) By MVV",13
-		db "Reset[Esc] OSD[Ins] HQ2x[Del] ROM[F1..F12]"
+		db "[NES] (build 20160723) By MVV",13
+		db "Reset[Esc] OSD[Ins] ROM[F1..F12]",13
 		db "DJOY1: use arrow keys for D-Pad",23,7,3
 		db "A[A] B[S] Sel[Space] Start[Enter]",13
 		db "DJOY2: use numpad keys for D-Pad",23,7,5
-		db "A[1] B[2] Sel[3] Start[4]",13
+		db "A[0] B[1] Sel[+] Start[Enter]",13
 		db "Board:ReVerSE-U16c FPGA:EP4CE22 FlashID:",13
 		db "PRG:",24,7,"CHR:",24,14,"Mapper:",24,25,"Checksum:",0
 
