@@ -7,6 +7,66 @@
 	<width>1</width>
 	<mode>7</mode>
 	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/nes/nes/rtl/loader/games/tetris-2.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/nes/nes/rtl/loader/games/snow-bros-(u).hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/nes/nes/rtl/loader/games/smb3.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/nes/nes/rtl/loader/games/RoboCop_2.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/nes/nes/rtl/loader/games/road-fighter-(e)-[!].hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/nes/nes/rtl/loader/games/lifeforce-(e)-[!].hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/nes/nes/rtl/loader/games/ferrari---grand-prix-challenge-(u)-[!].hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/nes/nes/rtl/loader/games/Super C (U).hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/nes/nes/rtl/loader/games/Battletoads_&_Double_Dragon_-_The_Ultimate_Team_(U).hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/nes/nes/rtl/loader/games/Aladdin (Unl).hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/nes/nes/rtl/loader/games/kirbysadventure.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/nes/nes/rtl/loader/games/1943.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
 		<hex_filename>C:/work/reverse/u16/fpga/nes/nes/rtl/loader/games/Prince_of_Persia_(U).hex</hex_filename>
 		<hex_addressing>relative</hex_addressing>
 		<hex_offset>0</hex_offset>

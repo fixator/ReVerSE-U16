@@ -1,7 +1,11 @@
+//-----------------------------------------------------------------[13.08.2016]
+// NES (build 20160813)
+//-----------------------------------------------------------------------------
+// Engineer: MVV <mvvproject@gmail.com>
+// Modified for ReVerSE-U16 <https://github.com/mvvproject/ReVerSE-U16/tree/master/u16_nes>
+//
 // Copyright (c) 2012-2013 Ludvig Strigeus
 // This program is GPL Licensed. See COPYING for the full license.
-//
-// Modified for ReVerSE-U16 By MVV (build 20160723)
 
 module NES_u16(	
 	// clock input
@@ -11,13 +15,17 @@ module NES_u16(
 	output [7:0]	TMDS,
 	// USB HOST	
 	input		USB_TX,
-	input		USB_SI,
-	output		USB_NCS,
+	input		USB_IO1,
 	// SPI FLASH
 	output		SPI_DI,
 	input		SPI_DO,
 	output		SPI_SCK,
 	output		SPI_CSn,
+	// SD
+	output		SD_DI,
+	input		SD_DO,
+	output		SD_SCK,
+	output		SD_CSn,
 	// SDRAM
 	inout  [15:0]	SDRAM_DQ,	// SDRAM Data bus 16 Bits
 	output [12:0]	SDRAM_A,	// SDRAM Address bus 13 Bits
@@ -28,11 +36,13 @@ module NES_u16(
 	output		SDRAM_nRAS,	// SDRAM Row Address Strobe
 	output [1:0]	SDRAM_BA,	// SDRAM Bank Address
 	output		SDRAM_CLK,	// SDRAM Clock
+	// Test
+	output		AN,		// UART RX
 	// audio
 	output		AUDIO_L,
-	output		AUDIO_R
-);
- 
+	output		AUDIO_R);
+
+
 	// VGA
 	wire [7:0]	vga_red;
 	wire [7:0]	vga_green;
@@ -40,6 +50,7 @@ module NES_u16(
 	wire		vga_hs;
 	wire		vga_vs;
 	wire [9:0]	vga_hc;
+	wire [9:0]	vga_h;
 	wire [9:0]	vga_vc;
 	wire		vga_blank;
 	// OSD
@@ -47,17 +58,10 @@ module NES_u16(
 	wire [7:0]	osd_green;
 	wire [7:0]	osd_blue;
 	wire [7:0]	tmds;
-	// virtual buttons and switches
-	wire [1:0]	buttons;
-	wire [2:0]	switches;
-	wire [15:0]	joypad_keys;
-	wire [7:0]	key0;
-	wire [7:0]	key1;
-	wire [7:0]	key2;
-	wire [7:0]	key3;
-	wire [7:0]	key4;
-	wire [7:0]	key5;
-	wire [7:0]	key6;
+	// buttons
+	wire [7:0]	joy0;
+	wire [7:0]	joy1;
+	wire [1:0]	key;
 	// spi
 	wire		spi1_clk;
 	wire		spi1_do;
@@ -66,7 +70,7 @@ module NES_u16(
 	wire		spi3_cs_n;
 	wire		spi4_cs_n;
 
-	wire		reset_nes = (init_reset || buttons[0] || !KEY_RESET || downloading);
+	wire		reset_nes = (init_reset || key[0] || !KEY_RESET || downloading);
 	wire		run_nes = (nes_ce == 3) && !reset_nes;
 	reg		init_reset;
 
@@ -112,11 +116,11 @@ module NES_u16(
 
 	clk U1(
 		.inclk0		(CLOCK_50),	//640x480:      720x480:
-		.c0		(clk_sdram),	// 84.000000MHz  84.375000MHz
-		.c1		(clk_nes),	// 21.000000MHz  21.093750MHz
-		.c2		(clk_bus),	// 42.000000MHz  42.187500MHz
-		.c3		(clk_vga),	// 25.200000MHz  27.000000MHz
-		.c4		(clk_dvi),	//126.000000MHz 135.000000MHz
+		.c0		(clk_sdram),	// 84.000000MHz  85.858586MHz
+		.c1		(clk_nes),	// 21.000000MHz  21.464646MHz
+		.c2		(clk_bus),	// 42.000000MHz  42.929293MHz
+		.c3		(clk_vga),	// 25.200000MHz  26.984127MHz
+		.c4		(clk_dvi),	//126.000000MHz 134.920635MHz
 		.locked		(clock_locked));
 
 	vga U2(
@@ -125,13 +129,14 @@ module NES_u16(
 		.I_COLOR	(color),
 		.I_HCNT		(cycle),
 		.I_VCNT		(scanline),
-		.O_HS		(vga_hs),
-		.O_VS		(vga_vs),
+		.O_HSYNC	(vga_hs),
+		.O_VSYNC	(vga_vs),
 		.O_RED		(vga_red),
 		.O_GREEN	(vga_green),
 		.O_BLUE		(vga_blue),
 		.O_HCNT		(vga_hc),
 		.O_VCNT		(vga_vc),
+		.O_H		(vga_h),
 		.O_BLANK	(vga_blank));
 		
 	osd U3(
@@ -139,68 +144,57 @@ module NES_u16(
 		.I_CLK_VGA	(clk_vga),
 		.I_CLK_CPU	(clk_nes),
 		.I_CLK_BUS	(clk_bus),
-		.I_KEY0		(key0),
-		.I_KEY1		(key1),
-		.I_KEY2		(key2),
-		.I_KEY3		(key3),
-		.I_KEY4		(key4),
-		.I_KEY5		(key5),
-		.I_KEY6		(key6),
+		.I_JOY0		(joy0),
+		.I_JOY1		(joy1),
+		.I_KEY		(key[1]),
 		.I_SPI_MISO	(SPI_DO),
-		.I_SPI1_MISO	(spi1_do),
+		.I_SD_MISO	(SD_DO),
 		.I_RED		(vga_red),
 		.I_GREEN	(vga_green),
 		.I_BLUE		(vga_blue),
 		.I_HCNT		(vga_hc),
 		.I_VCNT		(vga_vc),
+		.I_H		(vga_h),
 		.I_DOWNLOAD_OK	(loader_done),
 		.O_RED		(osd_red),
 		.O_GREEN	(osd_green),
 		.O_BLUE		(osd_blue),
-		.O_BUTTONS	(buttons),
-		.O_SWITCHES	(switches),
-		.O_JOYPAD_KEYS	(joypad_keys),
 		.O_SPI_CLK	(SPI_SCK),
 		.O_SPI_MOSI	(SPI_DI),
 		.O_SPI_CS_N	(SPI_CSn),	// SPI FLASH
-		.O_SPI1_CS_N	(),		// SD Card
+		.O_SD_CLK	(SD_SCK),
+		.O_SD_MOSI	(SD_DI),
+		.O_SD_CS_N	(SD_CSn),	// SD Card
 		.O_DOWNLOAD_DO	(loader_input),
 		.O_DOWNLOAD_WR	(loader_clk),
 		.O_DOWNLOAD_ON	(downloading));
 
-	hdmidirect U4(
-		.pixclk		(clk_vga),
-		.pixclk72	(clk_dvi),
-		.red		(osd_red),
-		.green		(osd_green),
-		.blue		(osd_blue),
-		.hSync		(vga_hs),
-		.vSync		(vga_vs),
-		.CounterX	(vga_hc),
-		.CounterY	(vga_vc),
-		.DrawArea	(vga_blank),
-		.SampleL	({sample[15:8],4'b0000}),
-		.SampleR	({sample[15:8],4'b0000}),
-		.tmds		(TMDS));
+	hdmi #(25200000, 48000, 25200, 6144) U4 (
+		.I_CLK_VGA	(clk_vga),
+		.I_CLK_TMDS	(clk_dvi),
+		.I_HSYNC	(vga_hs),
+		.I_VSYNC	(vga_vs),
+		.I_BLANK	(vga_blank),
+		.I_RED		(osd_red),
+		.I_GREEN	(osd_green),
+		.I_BLUE		(osd_blue),
+		.I_AUDIO_PCM_L	({sample[15:8],4'b0000}),
+		.I_AUDIO_PCM_R	({sample[15:8],4'b0000}),
+		.O_TMDS		(TMDS));
 
 	hid U5(
 		.I_CLK		(CLOCK_50),
 		.I_RESET	(!KEY_RESET),
 		.I_RX		(USB_TX),
-		.I_NEWFRAME	(USB_SI),
-		.I_JOYPAD_KEYS	(joypad_keys),
+		.I_NEWFRAME	(USB_IO1),
 		.I_JOYPAD_CLK1	(joypad_clock[0]),
 		.I_JOYPAD_CLK2	(joypad_clock[1]),
 		.I_JOYPAD_LATCH	(joypad_strobe),
 		.O_JOYPAD_DATA1	(joypad_bits),
 		.O_JOYPAD_DATA2	(joypad_bits2),
-		.O_KEY0		(key0),
-		.O_KEY1		(key1),
-		.O_KEY2		(key2),
-		.O_KEY3		(key3),
-		.O_KEY4		(key4),
-		.O_KEY5		(key5),
-		.O_KEY6		(key6));
+		.O_JOY0		(joy0),
+		.O_JOY1		(joy1),
+		.O_KEY		(key));
 
 	GameLoader U6(
 		.clk		(clk_nes),
@@ -292,9 +286,11 @@ module NES_u16(
 
 	
 	// assignments	
-	assign USB_NCS = 1'b0;
 	assign SDRAM_CLK = clk_sdram;
 	assign AUDIO_R = audio;
 	assign AUDIO_L = audio;
+	
+	//Test
+	assign AN = USB_TX;
 	
 endmodule

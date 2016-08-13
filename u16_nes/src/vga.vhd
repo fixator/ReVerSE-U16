@@ -1,7 +1,7 @@
--------------------------------------------------------------------[21.07.2016]
+-------------------------------------------------------------------[13.08.2016]
 -- VGA
 -------------------------------------------------------------------------------
--- Engineer: 	MVV
+-- Engineer: MVV <mvvproject@gmail.com>
 
 library IEEE; 
 	use IEEE.std_logic_1164.all; 
@@ -15,13 +15,14 @@ port (
 	I_COLOR		: in std_logic_vector(5 downto 0);
 	I_HCNT		: in std_logic_vector(8 downto 0);
 	I_VCNT		: in std_logic_vector(8 downto 0);
-	O_HS		: out std_logic;
-	O_VS		: out std_logic;
+	O_HSYNC		: out std_logic;
+	O_VSYNC		: out std_logic;
 	O_RED		: out std_logic_vector(7 downto 0);
 	O_GREEN		: out std_logic_vector(7 downto 0);
 	O_BLUE		: out std_logic_vector(7 downto 0);
 	O_HCNT		: out std_logic_vector(9 downto 0);
 	O_VCNT		: out std_logic_vector(9 downto 0);
+	O_H		: out std_logic_vector(9 downto 0);
 	O_BLANK		: out std_logic);
 end vga;
 
@@ -34,21 +35,22 @@ architecture rtl of vga is
 	signal picture		: std_logic;
 	signal window_hcnt	: std_logic_vector(8 downto 0) := "000000000";
 	signal hcnt		: std_logic_vector(9 downto 0) := "0000000000";
+	signal h		: std_logic_vector(9 downto 0) := "0000000000";
 	signal vcnt		: std_logic_vector(9 downto 0) := "0000000000";
 	signal hsync		: std_logic;
 	signal vsync		: std_logic;
 	signal blank		: std_logic;
 
--- ModeLine "720x480" 27.00 720 736 798 858 480 489 495 525 -HSync -VSync
+-- ModeLine "640x480@60Hz"  25,175  640  656  752  800 480 490 492 525 -HSync -VSync
 	-- Horizontal Timing constants  
-	constant h_pixels_across	: integer := 720 - 1;
-	constant h_sync_on		: integer := 736 - 1;
-	constant h_sync_off		: integer := 798 - 1;
-	constant h_end_count		: integer := 858 - 1;
+	constant h_pixels_across	: integer := 640 - 1;
+	constant h_sync_on		: integer := 656 - 1;
+	constant h_sync_off		: integer := 752 - 1;
+	constant h_end_count		: integer := 800 - 1;
 	-- Vertical Timing constants
 	constant v_pixels_down		: integer := 480 - 1;
-	constant v_sync_on		: integer := 489 - 1;
-	constant v_sync_off		: integer := 495 - 1;
+	constant v_sync_on		: integer := 490 - 1;
+	constant v_sync_off		: integer := 492 - 1;
 	constant v_end_count		: integer := 525 - 1;
 	
 begin
@@ -140,12 +142,18 @@ begin
 
 	process (I_CLK_VGA)
 	begin
-		if I_CLK_VGA'event and I_CLK_VGA = '0' then
-			if hcnt = h_end_count then
+		if I_CLK_VGA'event and I_CLK_VGA = '1' then
+			if h = h_end_count then
+				h <= (others => '0');
+			else
+				h <= h + 1;
+			end if;
+		
+			if h = 7 then
 				hcnt <= (others => '0');
 			else
 				hcnt <= hcnt + 1;
-				if hcnt = 103 then
+				if hcnt = 63 then
 					window_hcnt <= (others => '0');
 				else
 					window_hcnt <= window_hcnt + 1;
@@ -165,15 +173,16 @@ begin
 	addr_wr	<= I_VCNT(7 downto 0) & I_HCNT(7 downto 0);
 	addr_rd	<= vcnt(8 downto 1) & window_hcnt(8 downto 1);
 	blank	<= '1' when (hcnt > h_pixels_across) or (vcnt > v_pixels_down) else '0';
-	picture	<= '1' when (blank = '0') and (hcnt > 104 and hcnt < 616) else '0';
+	picture	<= '1' when (blank = '0') and (hcnt > 64 and hcnt < 576) else '0';
 
-	O_HS	<= '1' when (hcnt <= h_sync_on) or (hcnt > h_sync_off) else '0';
-	O_VS	<= '1' when (vcnt <= v_sync_on) or (vcnt > v_sync_off) else '0';
+	O_HSYNC	<= '1' when (hcnt <= h_sync_on) or (hcnt > h_sync_off) else '0';
+	O_VSYNC	<= '1' when (vcnt <= v_sync_on) or (vcnt > v_sync_off) else '0';
 	O_RED	<= rgb(23 downto 16) when picture = '1' else (others => '0');
 	O_GREEN	<= rgb(15 downto  8) when picture = '1' else (others => '0');
 	O_BLUE	<= rgb( 7 downto  0) when picture = '1' else (others => '0');
 	O_BLANK	<= blank;
 	O_HCNT	<= hcnt;
 	O_VCNT	<= vcnt;
+	O_H	<= h;
 	
 end rtl;
