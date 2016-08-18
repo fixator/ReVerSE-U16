@@ -1,5 +1,5 @@
 //---------------------------------------------------------------------------
-//-- (c) 2015 Alexey Spirkov
+//-- (c) 2015-2016 Alexey Spirkov
 //-- I am happy for anyone to use this for non-commercial use.
 //-- If my vhdl/c files are used commercially or otherwise sold,
 //-- please contact me for explicit permission at me _at_ alsp.net.
@@ -114,6 +114,7 @@ void iomux_setup(void)
 		vos_iomux_define_output(25, IOMUX_OUT_UART_RTS_N);
 		// UART_CTS_N to pin 26 as Input.
 		vos_iomux_define_input(26, IOMUX_IN_UART_CTS_N);
+		vos_iocell_set_config(26, 0, 0, 0, 1);
 }
 
 /* Main code - entry point to firmware */
