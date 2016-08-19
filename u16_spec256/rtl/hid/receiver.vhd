@@ -1,19 +1,7 @@
 -------------------------------------------------------------------[11.09.2015]
 -- Receiver
 -------------------------------------------------------------------------------
---
--- The keyboard firmware expects to receive 8 bytes formatted as a Keyboard HID report. The format is as follows:
--- Byte 0	Modifier keys:
--- 		Bit 0 - Left CTRL
--- 		Bit 1 - Left SHIFT
--- 		Bit 2 - Left ALT
--- 		Bit 3 - Left GUI
--- 		Bit 4 - Right CTRL
--- 		Bit 5 - Right SHIFT
--- 		Bit 6 - Right ALT
--- 		Bit 7 - Right GUI
--- Byte 1	Not used
--- Byte 2-7	HID active key usage codes. This represents up to 6 keys currently being pressed.
+-- Engineer: MVV <mvvproject@gmail.com>
 
 library ieee;
 use ieee.std_logic_1164.all;

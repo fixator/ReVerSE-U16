@@ -1,6 +1,7 @@
--------------------------------------------------------------------[21.06.2016]
+-------------------------------------------------------------------[14.08.2016]
 -- Sync
 -------------------------------------------------------------------------------
+-- Engineer: MVV <mvvproject@gmail.com>
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -21,16 +22,16 @@ end entity;
 
 architecture rtl of sync is
 
--- ModeLine "720x480" 27.00 720 736 798 858 480 489 495 525 -HSync -VSync
+-- ModeLine "640x480@60Hz"  25,175 640 656 752 800 480 490 492 525 -HSync -VSync
 	-- Horizontal Timing constants  
-	constant h_pixels_across	: integer := 720 - 1;
-	constant h_sync_on		: integer := 736 - 1;
-	constant h_sync_off		: integer := 798 - 1;
-	constant h_end_count		: integer := 858 - 1;
+	constant h_pixels_across	: integer := 640 - 1;
+	constant h_sync_on		: integer := 656 - 1;
+	constant h_sync_off		: integer := 752 - 1;
+	constant h_end_count		: integer := 800 - 1;
 	-- Vertical Timing constants
 	constant v_pixels_down		: integer := 480 - 1;
-	constant v_sync_on		: integer := 489 - 1;
-	constant v_sync_off		: integer := 495 - 1;
+	constant v_sync_on		: integer := 490 - 1;
+	constant v_sync_off		: integer := 492 - 1;
 	constant v_end_count		: integer := 525 - 1;
 
 	signal hcnt			: std_logic_vector(9 downto 0) := "0000000000"; 	-- horizontal pixel counter

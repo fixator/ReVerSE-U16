@@ -1,20 +1,24 @@
 #### SPEC256
-![image](cybernoid256.jpg)
+![image](pic1.jpg) ![image](pic1.jpg)
 
-- Эмулятор SPEC256 (Авторы - Iñigo Ayo Blázquez (код эмулятора) и David Goti (256-цветный режим) http://www.emulatronia.com/emusdaqui/spec256/download-eng.htm
-- Эмулятор EmuZWin (Автор - Владимир Кладов) который очень удобно использовать для адаптации игр http://www.worldofspectrum.org/emulators.html#pcwin
-- Адаптированные игры http://www.emulatronia.com/emusdaqui/spec256/download-eng.htm
+SPEC256: http://www.emulatronia.com/emusdaqui/spec256/download-eng.htm
 
-Главной особенностью является возможность запуска специальным образом адаптированных игр, графика которых заменена на 256-цветную. Раскрашивание графики в 256 цветов реализовано следующим образом - одновременно работают восемь компьютеров ZX Spectrum 48K, синхронно исполняющих одинаковый код. Графические данные в программах для каждого из компьютеров отличаются. При построении растра цвет точки определяется не битом в экранной области и атрибутом знакоместа, а байтом, составленным из одноимённых битов экранных областей разных компьютеров. Преимуществом такого подхода является возможность адаптации (раскрашивания) игр без переписывания или изменения их оригинального кода.
+игры: http://www.emulatronia.com/emusdaqui/spec256/download-eng.htm
 
-Решил попробовать реализовать этот эмулятор в железе на плате ReVerSE-U16
+редактор: http://kolmck.net/apps/EmuZ/EmuZWin_Rus.htm
 
-- табличку преобразования 256(8бит) цветов в RGB(888) 24бит взял из палитры в EmuZWin
-- разобрался с *.GFX, подготовленный bitmap для всей памяти 48К накладываемый на *.SNA, в моём случае накладывается со сдвигом на память каждого из 8-ми процессоров
-- записал без изменений на spiflash с адреса 0x000B4000 CYBERNOI.SNA, а с 0x000C001B CYBERNOI.GFX, игра www.emulatronia.com/emusdaqui/spec256/juego-cybernoid.htm
+Демонстрационное видео:
+
+[![Spec256 on FPGA (ReVerSE-U16)](http://img.youtube.com/vi/0wNCMqNwaIU/0.jpg)](http://www.youtube.com/watch?feature=player_embedded&v=0wNCMqNwaIU)
+
+build 20160819:
+- Video HDMI 640x480@60Hz
+- F5 = MENU для загрузки игр
+- VNC2 обновлена прошивка
+- работают не все игры, требуется правильная адаптация
 
 build 20160629:
-- +звук дополнительно выведен на HDMI Audio
+- HDMI Audio
 
 build 20160621:
 - загрузка игры из SPIFLASH с адреса 0x000B4000 = CYBERNOI.SNA, 0x000C001B = CYBERNOI.GFX

@@ -1,3 +1,6 @@
+Build 20160818 By Alexey Spirkov:
+!fixed, added string vos_iocell_set_config(26, 0, 0, 0, 1);
+
 Build 20160813 By MVV:
 +While packet is transferring pin 12 (PORT_A1) is in High state (needed to detect packet start)
 +LED Blanking

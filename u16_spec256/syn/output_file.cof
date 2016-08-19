@@ -1,20 +1,150 @@
 <?xml version="1.0" encoding="US-ASCII" standalone="yes"?>
 <cof>
-	<eprom_name>EPCS16</eprom_name>
+	<eprom_name>EPCS64</eprom_name>
 	<flash_loader_device>EP4CE22</flash_loader_device>
 	<output_filename>output_file.jic</output_filename>
 	<n_pages>1</n_pages>
 	<width>1</width>
 	<mode>7</mode>
 	<hex_block>
-		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/CYBERNOI_GFX.hex</hex_filename>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/UNDERW/UNDERW_GFX.hex</hex_filename>
 		<hex_addressing>relative</hex_addressing>
-		<hex_offset>786459</hex_offset>
+		<hex_offset>0</hex_offset>
 	</hex_block>
 	<hex_block>
-		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/CYBERNOI_SNA.hex</hex_filename>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/UNDERW/UNDERW_SNA..hex</hex_filename>
 		<hex_addressing>relative</hex_addressing>
-		<hex_offset>737280</hex_offset>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/SOLOMONS/SOLOMONS_GFX.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/SOLOMONS/SOLOMONS_SNA.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/ScoobyDoo/ScoobyDoo256_GFX.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/ScoobyDoo/ScoobyDoo256_SNA.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/SABREW/ROM0_GFX.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/SABREW/SABREW_GFX.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/SABREW/SABREW_SNA.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/PHANTIS1/PHANTIS1_GFX.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/PHANTIS1/PHANTIS1_SNA.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/KNLORE/KNLORE_GFX.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/KNLORE/KNLORE_SNA.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/JETPAC/ROM0_GFX.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/JETPAC/JETPAC_GFX.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/JETPAC/JETPAC_SNA.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/GAMEOV2/GAMEOV2_GFX.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/GAMEOV2/GAMEOV2_SNA.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/GAMEOV1/GAMEOV1_GFX.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/GAMEOV1/GAMEOV1_SNA.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/CYBERNOI/CYBERNOI_GFX.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/CYBERNOI/CYBERNOI_SNA.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/ARMYMOV2/ARMYMOV2_GFX.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/ARMYMOV2/ARMYMOV2_SNA.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/ARMYMOV1/ARMYMOV1_GFX.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/ARMYMOV1/ARMYMOV1_SNA.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/PROFANAT/PROFANAT_GFX.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
+	</hex_block>
+	<hex_block>
+		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/games/PROFANAT/PROFANAT_SNA.hex</hex_filename>
+		<hex_addressing>relative</hex_addressing>
+		<hex_offset>0</hex_offset>
 	</hex_block>
 	<hex_block>
 		<hex_filename>C:/work/reverse/u16/fpga/spec256/spec256/rom/82.hex</hex_filename>

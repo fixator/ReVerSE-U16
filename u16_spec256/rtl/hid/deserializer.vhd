@@ -1,6 +1,7 @@
 -------------------------------------------------------------------[01.01.2016]
 -- CONTROLLER USB HID scancode to Spectrum matrix conversion
 -------------------------------------------------------------------------------
+-- Engineer: MVV <mvvproject@gmail.com>
 
 library IEEE; 
 use IEEE.std_logic_1164.all; 

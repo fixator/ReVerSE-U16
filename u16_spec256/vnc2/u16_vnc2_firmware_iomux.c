@@ -36,6 +36,7 @@ void iomux_setup(void)
 		vos_iomux_define_output(25, IOMUX_OUT_UART_RTS_N);
 		// UART_CTS_N to pin 26 as Input.
 		vos_iomux_define_input(26, IOMUX_IN_UART_CTS_N);
+		vos_iocell_set_config(26, 0, 0, 0, 2);
 		// SPI_Slave_0_CLK to pin 29 as Input.
 		vos_iomux_define_input(29, IOMUX_IN_SPI_SLAVE_0_CLK);
 		// SPI_Slave_0_MOSI to pin 30 as Input.

@@ -1,6 +1,7 @@
--------------------------------------------------------------------[18.06.2016]
+-------------------------------------------------------------------[09.07.2016]
 -- VGA
 -------------------------------------------------------------------------------
+-- Engineer: MVV <mvvproject@gmail.com>
 
 library IEEE; 
 use IEEE.std_logic_1164.all; 
@@ -10,14 +11,7 @@ use IEEE.std_logic_unsigned.all;
 entity vga_spec256 is
 port (
 	I_CLK		: in std_logic;
-	I_DATA0		: in std_logic_vector(7 downto 0);
-	I_DATA1		: in std_logic_vector(7 downto 0);
-	I_DATA2		: in std_logic_vector(7 downto 0);
-	I_DATA3		: in std_logic_vector(7 downto 0);
-	I_DATA4		: in std_logic_vector(7 downto 0);
-	I_DATA5		: in std_logic_vector(7 downto 0);
-	I_DATA6		: in std_logic_vector(7 downto 0);
-	I_DATA7		: in std_logic_vector(7 downto 0);
+	I_DATA		: in std_logic_vector(63 downto 0);
 	I_BORDER	: in std_logic_vector(2 downto 0);	-- Биты D0..D2 порта xxFE определяют цвет бордюра
 	I_HCNT		: in std_logic_vector(9 downto 0);
 	I_VCNT		: in std_logic_vector(9 downto 0);
@@ -31,12 +25,12 @@ end entity;
 architecture rtl of vga_spec256 is
 
 -- ZX-Spectum screen
-	constant spec_border_left	: natural :=  52;
-	constant spec_screen_h		: natural := 256;
+	constant spec_border_left	: natural :=  32;	-- (640 - (spec_screen_h *2)) / 2 
+	constant spec_screen_h		: natural := 256;	-- Spectrum Screen h = 256 pixels
 
-	constant spec_border_top	: natural :=  24;
-	constant spec_screen_v		: natural := 192;
-	constant h_sync_on		: integer := 615;
+	constant spec_border_top	: natural :=  24;	-- (640 - (spec_screen_v * 2)) / 2
+	constant spec_screen_v		: natural := 192;	-- Spectrum Screen v = 192 pixels
+	constant h_sync_on		: integer := 575;	-- (spec_screen_h * 2) + (spec_border_left * 2) - 1
 
 	signal spec_h_count_reg		: std_logic_vector(9 downto 0);
 	signal spec_v_count_reg		: std_logic_vector(9 downto 0);
@@ -44,14 +38,7 @@ architecture rtl of vga_spec256 is
 	signal paper			: std_logic;
 	signal paper1			: std_logic;
 	signal pixel			: std_logic_vector(7 downto 0);
-	signal pixel_reg0		: std_logic_vector(6 downto 0);
-	signal pixel_reg1		: std_logic_vector(6 downto 0);
-	signal pixel_reg2		: std_logic_vector(6 downto 0);
-	signal pixel_reg3		: std_logic_vector(6 downto 0);
-	signal pixel_reg4		: std_logic_vector(6 downto 0);
-	signal pixel_reg5		: std_logic_vector(6 downto 0);
-	signal pixel_reg6		: std_logic_vector(6 downto 0);
-	signal pixel_reg7		: std_logic_vector(6 downto 0);
+	signal pixel_reg		: std_logic_vector(55 downto 0);
 	signal rgb			: std_logic_vector(23 downto 0);
 
 
@@ -75,23 +62,16 @@ begin
 		end if;
 		
 		case spec_h_count_reg(3 downto 0) is
-			when "0001" =>	pixel <= I_DATA7(7) & I_DATA6(7) & I_DATA5(7) & I_DATA4(7) & I_DATA3(7) & I_DATA2(7) & I_DATA1(7) & I_DATA0(7);
-					pixel_reg0 <= I_DATA0(6 downto 0);
-					pixel_reg1 <= I_DATA1(6 downto 0);
-					pixel_reg2 <= I_DATA2(6 downto 0);
-					pixel_reg3 <= I_DATA3(6 downto 0);
-					pixel_reg4 <= I_DATA4(6 downto 0);
-					pixel_reg5 <= I_DATA5(6 downto 0);
-					pixel_reg6 <= I_DATA6(6 downto 0);
-					pixel_reg7 <= I_DATA7(6 downto 0);
+			when "0001" =>	pixel <= I_DATA(63) & I_DATA(55) & I_DATA(47) & I_DATA(39) & I_DATA(31) & I_DATA(23) & I_DATA(15) & I_DATA(7);
+					pixel_reg <= I_DATA(62 downto 56) & I_DATA(54 downto 48) & I_DATA(46 downto 40) & I_DATA(38 downto 32) & I_DATA(30 downto 24) & I_DATA(22 downto 16) & I_DATA(14 downto 8) & I_DATA(6 downto 0);
 					paper1 <= paper;
-			when "0011" =>	pixel <= pixel_reg7(6) & pixel_reg6(6) & pixel_reg5(6) & pixel_reg4(6) & pixel_reg3(6) & pixel_reg2(6) & pixel_reg1(6) & pixel_reg0(6);
-			when "0101" =>	pixel <= pixel_reg7(5) & pixel_reg6(5) & pixel_reg5(5) & pixel_reg4(5) & pixel_reg3(5) & pixel_reg2(5) & pixel_reg1(5) & pixel_reg0(5);
-			when "0111" =>	pixel <= pixel_reg7(4) & pixel_reg6(4) & pixel_reg5(4) & pixel_reg4(4) & pixel_reg3(4) & pixel_reg2(4) & pixel_reg1(4) & pixel_reg0(4);
-			when "1001" => 	pixel <= pixel_reg7(3) & pixel_reg6(3) & pixel_reg5(3) & pixel_reg4(3) & pixel_reg3(3) & pixel_reg2(3) & pixel_reg1(3) & pixel_reg0(3);
-			when "1011" =>	pixel <= pixel_reg7(2) & pixel_reg6(2) & pixel_reg5(2) & pixel_reg4(2) & pixel_reg3(2) & pixel_reg2(2) & pixel_reg1(2) & pixel_reg0(2);
-			when "1101" =>	pixel <= pixel_reg7(1) & pixel_reg6(1) & pixel_reg5(1) & pixel_reg4(1) & pixel_reg3(1) & pixel_reg2(1) & pixel_reg1(1) & pixel_reg0(1);
-			when "1111" =>	pixel <= pixel_reg7(0) & pixel_reg6(0) & pixel_reg5(0) & pixel_reg4(0) & pixel_reg3(0) & pixel_reg2(0) & pixel_reg1(0) & pixel_reg0(0);
+			when "0011" =>	pixel <= pixel_reg(55) & pixel_reg(48) & pixel_reg(41) & pixel_reg(34) & pixel_reg(27) & pixel_reg(20) & pixel_reg(13) & pixel_reg(6);
+			when "0101" =>	pixel <= pixel_reg(54) & pixel_reg(47) & pixel_reg(40) & pixel_reg(33) & pixel_reg(26) & pixel_reg(19) & pixel_reg(12) & pixel_reg(5);
+			when "0111" =>	pixel <= pixel_reg(53) & pixel_reg(46) & pixel_reg(39) & pixel_reg(32) & pixel_reg(25) & pixel_reg(18) & pixel_reg(11) & pixel_reg(4);
+			when "1001" => 	pixel <= pixel_reg(52) & pixel_reg(45) & pixel_reg(38) & pixel_reg(31) & pixel_reg(24) & pixel_reg(17) & pixel_reg(10) & pixel_reg(3);
+			when "1011" =>	pixel <= pixel_reg(51) & pixel_reg(44) & pixel_reg(37) & pixel_reg(30) & pixel_reg(23) & pixel_reg(16) & pixel_reg( 9) & pixel_reg(2);
+			when "1101" =>	pixel <= pixel_reg(50) & pixel_reg(43) & pixel_reg(36) & pixel_reg(29) & pixel_reg(22) & pixel_reg(15) & pixel_reg( 8) & pixel_reg(1);
+			when "1111" =>	pixel <= pixel_reg(49) & pixel_reg(42) & pixel_reg(35) & pixel_reg(28) & pixel_reg(21) & pixel_reg(14) & pixel_reg( 7) & pixel_reg(0);
 			when others =>	null;
 		end case;
 		
