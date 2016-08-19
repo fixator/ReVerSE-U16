@@ -1,5 +1,5 @@
 #### SPEC256
-![image](pic1.jpg) ![image](pic1.jpg)
+![image](pic1.jpg) ![image](pic2.jpg)
 
 SPEC256: http://www.emulatronia.com/emusdaqui/spec256/download-eng.htm
 
